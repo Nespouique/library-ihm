@@ -1,74 +1,109 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, BookHeart, Users, BookOpen } from 'lucide-react';
 
-const AuthorDetailDialog = ({ author, books = [], open, onOpenChange, onNavigateToBooks }) => {
-  if (!author) return null;
+const AuthorDetailDialog = ({
+    author,
+    books = [],
+    open,
+    onOpenChange,
+    onNavigateToBooks,
+}) => {
+    if (!author) return null;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
-    } catch (error) {
-      return 'Date invalide';
-    }
-  };
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        try {
+            return new Date(dateString).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
+        } catch (error) {
+            return 'Date invalide';
+        }
+    };
 
-  const handleViewBooks = () => {
-    onNavigateToBooks(`${author.firstName} ${author.lastName}`);
-  };
+    const handleViewBooks = () => {
+        onNavigateToBooks(`${author.firstName} ${author.lastName}`);
+    };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="main-title-text text-2xl">{author.firstName} {author.lastName}</DialogTitle>
-        </DialogHeader>
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="main-title-text text-2xl">
+                        {author.firstName} {author.lastName}
+                    </DialogTitle>
+                </DialogHeader>
 
-        <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
-          <div className="flex items-center">
-            <CalendarDays className="h-5 w-5 mr-3 text-primary" />
-            <p><span className="font-medium">Né(e) le :</span> {formatDate(author.birthDate)}</p>
-          </div>
-          {author.deathDate && (
-            <div className="flex items-center">
-              <CalendarDays className="h-5 w-5 mr-3 text-primary" />
-              <p><span className="font-medium">Décédé(e) le :</span> {formatDate(author.deathDate)}</p>
-            </div>
-          )}
-          
-          {books.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-2 text-foreground flex items-center">
-                <BookOpen className="h-5 w-5 mr-2 text-primary" />
-                Livres dans la bibliothèque ({books.length}) :
-              </h4>
-              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground pl-2">
-                {books.map(book => (
-                  <li key={book.id}>{book.title}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {books.length === 0 && (
-             <div className="flex items-center text-sm text-muted-foreground">
-                <BookOpen className="h-5 w-5 mr-2 text-primary" />
-                Aucun livre de cet auteur dans la bibliothèque.
-            </div>
-          )}
-        </div>
+                <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <div className="flex items-center">
+                        <CalendarDays className="h-5 w-5 mr-3 text-primary" />
+                        <p>
+                            <span className="font-medium">Né(e) le :</span>{' '}
+                            {formatDate(author.birthDate)}
+                        </p>
+                    </div>
+                    {author.deathDate && (
+                        <div className="flex items-center">
+                            <CalendarDays className="h-5 w-5 mr-3 text-primary" />
+                            <p>
+                                <span className="font-medium">
+                                    Décédé(e) le :
+                                </span>{' '}
+                                {formatDate(author.deathDate)}
+                            </p>
+                        </div>
+                    )}
 
-        <DialogFooter className="pt-4 sm:justify-between">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Fermer</Button>
-          <Button onClick={handleViewBooks} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Users className="h-4 w-4 mr-2" />
-            Voir les livres
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+                    {books.length > 0 && (
+                        <div>
+                            <h4 className="font-medium mb-2 text-foreground flex items-center">
+                                <BookOpen className="h-5 w-5 mr-2 text-primary" />
+                                Livres dans la bibliothèque ({books.length}) :
+                            </h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground pl-2">
+                                {books.map((book) => (
+                                    <li key={book.id}>{book.title}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    {books.length === 0 && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                            <BookOpen className="h-5 w-5 mr-2 text-primary" />
+                            Aucun livre de cet auteur dans la bibliothèque.
+                        </div>
+                    )}
+                </div>
+
+                <DialogFooter className="pt-4 sm:justify-between">
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                    >
+                        Fermer
+                    </Button>
+                    <Button
+                        onClick={handleViewBooks}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                        <Users className="h-4 w-4 mr-2" />
+                        Voir les livres
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
 };
 
 export default AuthorDetailDialog;

@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+coverage
+.env
+*.log
+
+# Plugins with complex indentation that conflicts with prettier
+plugins/visual-editor/vite-plugin-react-inline-editor.js

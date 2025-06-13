@@ -1,2 +1,9 @@
 .idea/
 node_modules
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
