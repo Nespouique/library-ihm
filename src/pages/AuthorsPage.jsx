@@ -8,34 +8,12 @@ import AddAuthorDialog from '@/components/AddAuthorDialog';
 import AuthorDetailDialog from '@/components/AuthorDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
-
-const generateRandomNamePart = (length) => {
-    const characters = 'abcdefghijklmnopqrstuvwxyz';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(
-            Math.floor(Math.random() * characters.length)
-        );
-    }
-    return result.charAt(0).toUpperCase() + result.slice(1);
-};
-
-const generateRandomAuthor = (id) => {
-    return {
-        id: id.toString(),
-        firstName: generateRandomNamePart(Math.floor(Math.random() * 5) + 3),
-        lastName: generateRandomNamePart(Math.floor(Math.random() * 7) + 4),
-        bookCount: Math.floor(Math.random() * 10),
-        birthDate: `19${Math.floor(Math.random() * 80) + 10}-0${Math.floor(Math.random() * 9) + 1}-${Math.floor(Math.random() * 20) + 10}`,
-        deathDate:
-            Math.random() > 0.3
-                ? `20${Math.floor(Math.random() * 20)}-0${Math.floor(Math.random() * 9) + 1}-${Math.floor(Math.random() * 20) + 10}`
-                : null,
-    };
-};
+import { authorsService, booksService } from '@/services/api';
 
 const AuthorsPage = () => {
     const [authors, setAuthors] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [books, setBooks] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -43,66 +21,117 @@ const AuthorsPage = () => {
     const navigate = useNavigate();
     const authorRefs = useRef({});
 
-    useEffect(() => {
-        const savedAuthors = localStorage.getItem('library-authors');
-        if (savedAuthors) {
-            setAuthors(JSON.parse(savedAuthors));
-        } else {
-            const sampleAuthors = [
+    // Charger les auteurs depuis l'API et calculer le nombre de livres
+    const loadAuthors = async (booksData = []) => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await authorsService.getAuthors(1);
+            
+            // Transformer les données API vers le format attendu par l'interface
+            const transformedAuthors = response.data.map(author => {
+                // Calculer le nombre de livres pour cet auteur
+                const authorBookCount = booksData.filter(book => book.authorId === author.id).length;
+                
+                return {
+                    id: author.id,
+                    firstName: author.firstName,
+                    lastName: author.lastName,
+                    bookCount: authorBookCount,
+                    birthDate: null, // Pas dans l'API pour le moment
+                    deathDate: null, // Pas dans l'API pour le moment
+                };
+            });
+            
+            setAuthors(transformedAuthors.sort((a, b) => {
+                // Normaliser les noms pour un tri alphabétique correct
+                const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
+                const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
+                return nameA.localeCompare(nameB);
+            }));
+        } catch (err) {
+            console.error('Erreur lors du chargement des auteurs:', err);
+            setError('Impossible de charger les auteurs. Vérifiez que l\'API est démarrée.');
+            
+            // En cas d'erreur, utiliser des données de fallback
+            setAuthors([
                 {
                     id: '1',
-                    firstName: 'Antoine',
-                    lastName: 'de Saint-Exupéry',
-                    bookCount: 1,
-                    birthDate: '1900-06-29',
-                    deathDate: '1944-07-31',
-                },
-                {
-                    id: '2',
-                    firstName: 'George',
-                    lastName: 'Orwell',
-                    bookCount: 1,
-                    birthDate: '1903-06-25',
-                    deathDate: '1950-01-21',
-                },
-                {
-                    id: '3',
-                    firstName: 'F. Scott',
-                    lastName:
-                        "Fitzgerald, un auteur américain connu pour ses romans sur l'âge du jazz",
-                    bookCount: 1,
-                    birthDate: '1896-09-24',
-                    deathDate: '1940-12-21',
-                },
-            ];
-            const generatedAuthors = Array.from({ length: 50 }, (_, i) =>
-                generateRandomAuthor(i + 4)
-            );
-            const allAuthors = [...sampleAuthors, ...generatedAuthors];
-            setAuthors(
-                allAuthors.sort((a, b) =>
-                    `${a.lastName} ${a.firstName}`.localeCompare(
-                        `${b.lastName} ${b.firstName}`
-                    )
-                )
-            );
-            localStorage.setItem('library-authors', JSON.stringify(allAuthors));
+                    firstName: 'Auteur',
+                    lastName: 'Test',
+                    bookCount: 0,
+                    birthDate: null,
+                    deathDate: null,
+                }
+            ]);
+        } finally {
+            setLoading(false);
         }
+    };
 
-        const savedBooks = localStorage.getItem('library-books');
-        if (savedBooks) {
-            setBooks(JSON.parse(savedBooks));
+    // Charger les livres depuis l'API
+    const loadBooks = async () => {
+        try {
+            const response = await booksService.getBooks(1);
+            // Transformer les données API vers le format attendu par l'interface
+            const transformedBooks = response.data.map(book => ({
+                id: book.id,
+                title: book.title,
+                author: `${book.author.firstName} ${book.author.lastName}`,
+                authorId: book.author.id, // Garder l'ID pour le matching
+                isbn: book.isbn,
+                description: book.description,
+                shelf: book.shelf || 'Non classé',
+                publicationDate: book.date,
+                coverUrl: book.jacket || '',
+                status: 'unread',
+                pageCount: Math.floor(Math.random() * 500) + 50,
+            }));
+            setBooks(transformedBooks);
+            return transformedBooks; // Retourner les données pour calcul
+        } catch (err) {
+            console.error('Erreur lors du chargement des livres:', err);
+            // En cas d'erreur, garder un tableau vide
+            setBooks([]);
+            return []; // Retourner tableau vide
         }
+    };
+
+    useEffect(() => {
+        const loadData = async () => {
+            // Charger d'abord les livres
+            const booksData = await loadBooks();
+            // Puis charger les auteurs avec le bon compteur de livres
+            await loadAuthors(booksData);
+        };
+        
+        loadData();
     }, []);
 
     const handleAddAuthor = (newAuthor) => {
-        const updatedAuthors = [...authors, newAuthor].sort((a, b) =>
-            `${a.lastName} ${a.firstName}`.localeCompare(
-                `${b.lastName} ${b.firstName}`
-            )
-        );
+        // TODO: Appeler l'API pour ajouter l'auteur
+        console.log('Ajout d\'auteur via API à implémenter:', newAuthor);
+        
+        // Pour l'instant, on ajoute localement en attendant l'implémentation POST
+        const authorWithId = {
+            ...newAuthor,
+            id: Date.now().toString(), // ID temporaire
+            bookCount: 0,
+            birthDate: newAuthor.birthDate || null,
+            deathDate: newAuthor.deathDate || null,
+        };
+        const updatedAuthors = [...authors, authorWithId].sort((a, b) => {
+            const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
+            const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
+            return nameA.localeCompare(nameB);
+        });
         setAuthors(updatedAuthors);
-        localStorage.setItem('library-authors', JSON.stringify(updatedAuthors));
+        
+        toast({
+            title: 'Auteur ajouté!',
+            description: `${newAuthor.firstName} ${newAuthor.lastName} a été ajouté (temporairement).`,
+        });
     };
 
     const filteredAuthors = authors
@@ -111,11 +140,11 @@ const AuthorsPage = () => {
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
         )
-        .sort((a, b) =>
-            `${a.lastName} ${a.firstName}`.localeCompare(
-                `${b.lastName} ${b.firstName}`
-            )
-        );
+        .sort((a, b) => {
+            const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
+            const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
+            return nameA.localeCompare(nameB);
+        });
 
     const handleLetterScroll = (char) => {
         let firstAuthorWithChar;
@@ -163,8 +192,8 @@ const AuthorsPage = () => {
     };
 
     const getAuthorBooks = (author) => {
-        const authorFullName = `${author.firstName} ${author.lastName}`;
-        return books.filter((book) => book.author === authorFullName);
+        // Utiliser l'ID de l'auteur pour un matching exact
+        return books.filter((book) => book.authorId === author.id);
     };
 
     return (
@@ -180,53 +209,78 @@ const AuthorsPage = () => {
                 onChange={setSearchTerm}
             />
             <AlphabeticalScroller onLetterClick={handleLetterScroll} />
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredAuthors.length > 0 ? (
-                    filteredAuthors.map((author, index) => (
-                        <div
-                            key={author.id}
-                            ref={(el) => (authorRefs.current[author.id] = el)}
-                            className="h-full"
-                        >
-                            <AuthorCard
-                                author={author}
-                                index={index}
-                                onClick={() => setSelectedAuthor(author)}
-                            />
-                        </div>
-                    ))
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="col-span-full text-center py-12"
+            
+            {/* Indicateur de chargement */}
+            {loading ? (
+                <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Chargement des auteurs...</p>
+                </div>
+            ) : error ? (
+                <div className="text-center py-12">
+                    <div className="text-destructive mb-4">
+                        <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <p className="text-destructive mb-4">{error}</p>
+                    <button 
+                        onClick={loadAuthors}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
-                        <div className="text-gray-400 mb-4">
-                            <svg
-                                className="mx-auto h-12 w-12"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        Réessayer
+                    </button>
+                </div>
+            ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredAuthors.length > 0 ? (
+                        filteredAuthors.map((author, index) => (
+                            <div
+                                key={author.id}
+                                ref={(el) => (authorRefs.current[author.id] = el)}
+                                className="h-full"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                <AuthorCard
+                                    author={author}
+                                    index={index}
+                                    onClick={() => setSelectedAuthor(author)}
                                 />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-foreground mb-2">
+                            </div>
+                        ))
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="col-span-full text-center py-12"
+                        >
+                            <div className="text-gray-400 mb-4">
+                                <svg
+                                    className="mx-auto h-12 w-12"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-foreground mb-2">
                             Aucun auteur trouvé
-                        </h3>
-                        <p className="text-muted-foreground">
-                            {searchTerm
-                                ? 'Aucun auteur ne correspond à votre recherche.'
-                                : 'Commencez par ajouter votre premier auteur !'}
-                        </p>
-                    </motion.div>
-                )}
-            </div>
+                            </h3>
+                            <p className="text-muted-foreground">
+                                {searchTerm
+                                    ? 'Aucun auteur ne correspond à votre recherche.'
+                                    : 'Commencez par ajouter votre premier auteur !'}
+                            </p>
+                        </motion.div>
+                    )}
+                </div>
+            )}
+            
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
             <AddAuthorDialog
                 open={isAddDialogOpen}
