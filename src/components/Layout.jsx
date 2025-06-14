@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Book, Users, Bookmark } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import KubeIcon from './KubeIcon';
 
 const Layout = () => {
     const navItems = [
@@ -15,11 +16,10 @@ const Layout = () => {
             {/* Navigation */}
             <nav className="flat-nav">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-2">
-                            <Book className="h-8 w-8 text-primary" />
+                    <div className="flex justify-between items-center h-16">                        <div className="flex items-center space-x-2">
+                            <KubeIcon className="h-8 w-8 text-primary" />
                             <span className="text-xl font-bold main-title-text">
-                                Bibliothèque
+                                Kubothèque
                             </span>
                         </div>
 
