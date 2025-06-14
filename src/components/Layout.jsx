@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Book, Users, Bookmark } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const Layout = () => {
     const navItems = [
@@ -13,28 +12,19 @@ const Layout = () => {
     return (
         <div className="min-h-screen bg-background">
             {/* Navigation */}
-            <nav className="flat-nav sticky top-0 z-40">
+            <nav className="flat-nav">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center space-x-2"
-                        >
+                        <div className="flex items-center space-x-2">
                             <Book className="h-8 w-8 text-primary" />
                             <span className="text-xl font-bold main-title-text">
                                 Bibliothèque
                             </span>
-                        </motion.div>
+                        </div>
 
                         <div className="flex space-x-1">
-                            {navItems.map((item, index) => (
-                                <motion.div
-                                    key={item.to}
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                >
+                            {navItems.map((item) => (
+                                <div key={item.to}>
                                     <NavLink
                                         to={item.to}
                                         className={({ isActive }) =>
@@ -50,7 +40,7 @@ const Layout = () => {
                                             {item.label}
                                         </span>
                                     </NavLink>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
                     </div>

@@ -69,18 +69,11 @@ const ShelvesPage = () => {
 
     return (
         <div className="space-y-8">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center"
-            >
-                <h1 className="text-4xl font-bold main-title-text mb-2">
+            <div className="text-center">
+                <h1 className="text-4xl font-bold main-title-text">
                     Gestion des Étagères
                 </h1>
-                <p className="text-muted-foreground text-lg">
-                    Organisez votre bibliothèque par étagères
-                </p>
-            </motion.div>
+            </div>
 
             <SearchBar
                 placeholder="Rechercher une étagère..."

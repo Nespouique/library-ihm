@@ -68,7 +68,7 @@ const BooksPage = ({ initialSearchTerm }) => {
             const sampleBooks = [
                 {
                     id: '1',
-                    title: 'Le Petit Prince',
+                    title: 'Petit Prince',
                     author: 'Antoine de Saint-Exupéry',
                     isbn: '978-2-07-040850-1',
                     description:
@@ -94,7 +94,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                 },
                 {
                     id: '3',
-                    title: "Gatsby le Magnifique, un roman qui explore les thèmes du rêve américain, de la richesse, de l'amour et de la perte dans les années 1920.",
+                    title: "Zatsby le Magnifique, un roman qui explore les thèmes du rêve américain, de la richesse, de l'amour et de la perte dans les années 1920.",
                     author: 'F. Scott Fitzgerald',
                     isbn: '978-0743273565',
                     description:
@@ -153,7 +153,7 @@ const BooksPage = ({ initialSearchTerm }) => {
 
     const handleLetterScroll = (char) => {
         let firstBookWithChar;
-        
+
         if (char === '#') {
             // Trouver le premier livre qui ne commence pas par une lettre
             firstBookWithChar = filteredBooks.find((book) => {
@@ -166,17 +166,27 @@ const BooksPage = ({ initialSearchTerm }) => {
                 book.title.toUpperCase().startsWith(char)
             );
         }
-        
+
         if (firstBookWithChar && bookRefs.current[firstBookWithChar.id]) {
-            bookRefs.current[firstBookWithChar.id].scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-                inline: 'nearest',
+            const element = bookRefs.current[firstBookWithChar.id];
+            const headerHeight = 64; // 4rem = 64px (hauteur du header h-16)
+            const extraOffset = 16; // 1rem = 16px (marge supplémentaire)
+            const totalOffset = headerHeight + extraOffset;
+            
+            // Calculer la position de l'élément par rapport au top de la page
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - totalOffset;
+            
+            // Scroll avec l'offset
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
             });
         } else {
-            const description = char === '#' 
-                ? 'Aucun livre ne commence par un chiffre ou caractère spécial.'
-                : `Aucun livre ne commence par la lettre ${char}.`;
+            const description =
+                char === '#'
+                    ? 'Aucun livre ne commence par un chiffre ou caractère spécial.'
+                    : `Aucun livre ne commence par la lettre ${char}.`;
             toast({
                 title: 'Aucun livre',
                 description,
@@ -187,18 +197,11 @@ const BooksPage = ({ initialSearchTerm }) => {
 
     return (
         <div className="space-y-8">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center"
-            >
-                <h1 className="text-4xl font-bold main-title-text mb-2">
+            <div className="text-center">
+                <h1 className="text-4xl font-bold main-title-text">
                     Gestion des Livres
                 </h1>
-                <p className="text-muted-foreground text-lg">
-                    Découvrez et gérez votre collection de livres
-                </p>
-            </motion.div>
+            </div>
             <SearchBar
                 placeholder="Rechercher par titre, auteur ou ISBN..."
                 value={searchTerm}
@@ -249,7 +252,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                             </svg>
                         </div>
                         <h3 className="text-lg font-medium text-foreground mb-2">
-                                Aucun livre trouvé
+                            Aucun livre trouvé
                         </h3>
                         <p className="text-muted-foreground">
                             {searchTerm

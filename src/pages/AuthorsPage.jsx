@@ -119,7 +119,7 @@ const AuthorsPage = () => {
 
     const handleLetterScroll = (char) => {
         let firstAuthorWithChar;
-        
+
         if (char === '#') {
             // Trouver le premier auteur dont le nom ne commence pas par une lettre
             firstAuthorWithChar = filteredAuthors.find((author) => {
@@ -132,20 +132,27 @@ const AuthorsPage = () => {
                 author.lastName.toUpperCase().startsWith(char)
             );
         }
-        
-        if (
-            firstAuthorWithChar &&
-            authorRefs.current[firstAuthorWithChar.id]
-        ) {
-            authorRefs.current[firstAuthorWithChar.id].scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-                inline: 'nearest',
+
+        if (firstAuthorWithChar && authorRefs.current[firstAuthorWithChar.id]) {
+            const element = authorRefs.current[firstAuthorWithChar.id];
+            const headerHeight = 64; // 4rem = 64px (hauteur du header h-16)
+            const extraOffset = 16; // 1rem = 16px (marge supplémentaire)
+            const totalOffset = headerHeight + extraOffset;
+            
+            // Calculer la position de l'élément par rapport au top de la page
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - totalOffset;
+            
+            // Scroll avec l'offset
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
             });
         } else {
-            const description = char === '#' 
-                ? 'Aucun auteur dont le nom commence par un chiffre ou caractère spécial.'
-                : `Aucun auteur dont le nom commence par ${char}.`;
+            const description =
+                char === '#'
+                    ? 'Aucun auteur dont le nom commence par un chiffre ou caractère spécial.'
+                    : `Aucun auteur dont le nom commence par ${char}.`;
             toast({
                 title: 'Aucun auteur',
                 description,
@@ -161,18 +168,11 @@ const AuthorsPage = () => {
 
     return (
         <div className="space-y-8">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center"
-            >
-                <h1 className="text-4xl font-bold main-title-text mb-2">
+            <div className="text-center">
+                <h1 className="text-4xl font-bold main-title-text">
                     Gestion des Auteurs
                 </h1>
-                <p className="text-muted-foreground text-lg">
-                    Découvrez et gérez vos auteurs favoris
-                </p>
-            </motion.div>
+            </div>
             <SearchBar
                 placeholder="Rechercher un auteur..."
                 value={searchTerm}
@@ -184,9 +184,7 @@ const AuthorsPage = () => {
                     filteredAuthors.map((author, index) => (
                         <div
                             key={author.id}
-                            ref={(el) =>
-                                (authorRefs.current[author.id] = el)
-                            }
+                            ref={(el) => (authorRefs.current[author.id] = el)}
                             className="h-full"
                         >
                             <AuthorCard
@@ -218,7 +216,7 @@ const AuthorsPage = () => {
                             </svg>
                         </div>
                         <h3 className="text-lg font-medium text-foreground mb-2">
-                                Aucun auteur trouvé
+                            Aucun auteur trouvé
                         </h3>
                         <p className="text-muted-foreground">
                             {searchTerm
@@ -242,9 +240,7 @@ const AuthorsPage = () => {
                     onOpenChange={() => setSelectedAuthor(null)}
                     onNavigateToBooks={(authorName) => {
                         setSelectedAuthor(null);
-                        navigate(
-                            `/?search=${encodeURIComponent(authorName)}`
-                        );
+                        navigate(`/?search=${encodeURIComponent(authorName)}`);
                     }}
                 />
             )}

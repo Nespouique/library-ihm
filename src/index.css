@@ -31,18 +31,46 @@
     * {
         @apply border-border;
     }
+
+    html {
+        /* Force l'affichage permanent de la barre de défilement pour éviter le décalage horizontal */
+        overflow-y: scroll;
+        /* Propriété moderne pour les navigateurs récents - réserve l'espace pour la scrollbar */
+        scrollbar-gutter: stable;
+    }
+
     body {
         @apply bg-background text-foreground min-h-screen; /* Solid background */
         font-feature-settings:
             'rlig' 1,
             'calt' 1;
     }
+
+    /* Fix pour empêcher le décalage causé par les modales Radix UI */
+    /* Solution la plus robuste avec spécificité maximale */
+    html body[data-scroll-locked],
+    html body[data-scroll-locked][style*='margin-right'] {
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+    }
+    
+    /* Fix pour le scroll vers les éléments - compense la hauteur du header fixe */
+    .book-card,
+    .author-card,
+    .shelf-card {
+        scroll-margin-top: calc(4rem + 1rem); /* Hauteur du header (h-16 = 4rem) + marge supplémentaire */
+    }
 }
 
 @layer components {
+    .flat-nav {
+        @apply bg-background/95 backdrop-blur-md border-b border-border shadow-md sticky top-0 z-40;
+    }
+
     .glass-effect {
-        /* Renamed to flat-nav for clarity */
-        @apply bg-white/80 backdrop-blur-md border-b border-border shadow-md; /* Flatter navigation */
+        /* Legacy class - kept for compatibility */
+        @apply bg-white/80 backdrop-blur-md border-b border-border shadow-md;
     }
 
     .main-title-text {
@@ -73,7 +101,11 @@
 
     .alphabet-letter-btn {
         @apply w-7 h-7 flex items-center justify-center text-sm font-medium text-muted-foreground rounded-md border border-border/30 bg-background/60 backdrop-blur-sm cursor-pointer select-none flex-shrink-0 shadow-sm;
-        transition: color 0.1s ease, border-color 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
+        transition:
+            color 0.1s ease,
+            border-color 0.1s ease,
+            background-color 0.1s ease,
+            box-shadow 0.1s ease;
     }
 
     .alphabet-letter-btn:hover {
