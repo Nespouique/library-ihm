@@ -16,13 +16,14 @@ const Layout = () => {
             {/* Navigation */}
             <nav className="flat-nav">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">                        <div className="flex items-center space-x-2">
+                    <div className="flex justify-between items-center h-16">
+                        {' '}
+                        <div className="flex items-center space-x-2">
                             <KubeIcon className="h-8 w-8 text-primary" />
                             <span className="text-xl font-bold main-title-text">
                                 Kubothèque
                             </span>
                         </div>
-
                         <div className="flex items-center space-x-4">
                             <div className="flex space-x-1">
                                 {navItems.map((item) => (
@@ -45,7 +46,7 @@ const Layout = () => {
                                     </div>
                                 ))}
                             </div>
-                            
+
                             {/* Theme Toggle */}
                             <ThemeToggle />
                         </div>

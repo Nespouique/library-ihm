@@ -138,15 +138,16 @@ const AuthorsPage = () => {
             const headerHeight = 64; // 4rem = 64px (hauteur du header h-16)
             const extraOffset = 16; // 1rem = 16px (marge supplémentaire)
             const totalOffset = headerHeight + extraOffset;
-            
+
             // Calculer la position de l'élément par rapport au top de la page
-            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const elementPosition =
+                element.getBoundingClientRect().top + window.pageYOffset;
             const offsetPosition = elementPosition - totalOffset;
-            
+
             // Scroll avec l'offset
             window.scrollTo({
                 top: offsetPosition,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         } else {
             const description =
