@@ -151,117 +151,128 @@ const BooksPage = ({ initialSearchTerm }) => {
         )
         .sort((a, b) => a.title.localeCompare(b.title));
 
-    const handleLetterScroll = (letter) => {
-        const firstBookWithLetter = filteredBooks.find((book) =>
-            book.title.toUpperCase().startsWith(letter)
-        );
-        if (firstBookWithLetter && bookRefs.current[firstBookWithLetter.id]) {
-            bookRefs.current[firstBookWithLetter.id].scrollIntoView({
+    const handleLetterScroll = (char) => {
+        let firstBookWithChar;
+        
+        if (char === '#') {
+            // Trouver le premier livre qui ne commence pas par une lettre
+            firstBookWithChar = filteredBooks.find((book) => {
+                const firstChar = book.title.charAt(0).toUpperCase();
+                return !/^[A-Z]$/.test(firstChar);
+            });
+        } else {
+            // Trouver le premier livre qui commence par la lettre spécifiée
+            firstBookWithChar = filteredBooks.find((book) =>
+                book.title.toUpperCase().startsWith(char)
+            );
+        }
+        
+        if (firstBookWithChar && bookRefs.current[firstBookWithChar.id]) {
+            bookRefs.current[firstBookWithChar.id].scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
                 inline: 'nearest',
             });
         } else {
+            const description = char === '#' 
+                ? 'Aucun livre ne commence par un chiffre ou caractère spécial.'
+                : `Aucun livre ne commence par la lettre ${char}.`;
             toast({
                 title: 'Aucun livre',
-                description: `Aucun livre ne commence par la lettre ${letter}.`,
+                description,
                 variant: 'destructive',
             });
         }
     };
 
     return (
-        <div className="flex">
-            <div className="flex-grow space-y-8 pr-16">
-                {' '}
-                {/* Adjusted pr for AlphabeticalScroller width */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center"
-                >
-                    <h1 className="text-4xl font-bold main-title-text mb-2">
-                        Gestion des Livres
-                    </h1>
-                    <p className="text-muted-foreground text-lg">
-                        Découvrez et gérez votre collection de livres
-                    </p>
-                </motion.div>
-                <SearchBar
-                    placeholder="Rechercher par titre, auteur ou ISBN..."
-                    value={searchTerm}
-                    onChange={(value) => {
-                        setSearchTerm(value);
-                        // Update URL without navigating
-                        const newUrl = value
-                            ? `/?search=${encodeURIComponent(value)}`
-                            : '/';
-                        window.history.replaceState({}, '', newUrl);
-                    }}
-                />
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredBooks.length > 0 ? (
-                        filteredBooks.map((book, index) => (
-                            <div
-                                key={book.id}
-                                ref={(el) => (bookRefs.current[book.id] = el)}
-                                className="h-full"
-                            >
-                                <BookCard
-                                    book={book}
-                                    index={index}
-                                    onClick={() => setSelectedBook(book)}
-                                />
-                            </div>
-                        ))
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="col-span-full text-center py-12"
+        <div className="space-y-8">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center"
+            >
+                <h1 className="text-4xl font-bold main-title-text mb-2">
+                    Gestion des Livres
+                </h1>
+                <p className="text-muted-foreground text-lg">
+                    Découvrez et gérez votre collection de livres
+                </p>
+            </motion.div>
+            <SearchBar
+                placeholder="Rechercher par titre, auteur ou ISBN..."
+                value={searchTerm}
+                onChange={(value) => {
+                    setSearchTerm(value);
+                    // Update URL without navigating
+                    const newUrl = value
+                        ? `/?search=${encodeURIComponent(value)}`
+                        : '/';
+                    window.history.replaceState({}, '', newUrl);
+                }}
+            />
+            <AlphabeticalScroller onLetterClick={handleLetterScroll} />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredBooks.length > 0 ? (
+                    filteredBooks.map((book, index) => (
+                        <div
+                            key={book.id}
+                            ref={(el) => (bookRefs.current[book.id] = el)}
+                            className="h-full"
                         >
-                            <div className="text-gray-400 mb-4">
-                                <svg
-                                    className="mx-auto h-12 w-12"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                                    />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-medium text-foreground mb-2">
+                            <BookCard
+                                book={book}
+                                index={index}
+                                onClick={() => setSelectedBook(book)}
+                            />
+                        </div>
+                    ))
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="col-span-full text-center py-12"
+                    >
+                        <div className="text-gray-400 mb-4">
+                            <svg
+                                className="mx-auto h-12 w-12"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">
                                 Aucun livre trouvé
-                            </h3>
-                            <p className="text-muted-foreground">
-                                {searchTerm
-                                    ? 'Aucun livre ne correspond à votre recherche.'
-                                    : 'Commencez par ajouter votre premier livre !'}
-                            </p>
-                        </motion.div>
-                    )}
-                </div>
-                <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
-                <AddBookDialog
-                    open={isAddDialogOpen}
-                    onOpenChange={setIsAddDialogOpen}
-                    onAddBook={handleAddBook}
-                />
-                {selectedBook && (
-                    <BookDetailDialog
-                        book={selectedBook}
-                        open={!!selectedBook}
-                        onOpenChange={() => setSelectedBook(null)}
-                        onUpdateBook={handleUpdateBook}
-                    />
+                        </h3>
+                        <p className="text-muted-foreground">
+                            {searchTerm
+                                ? 'Aucun livre ne correspond à votre recherche.'
+                                : 'Commencez par ajouter votre premier livre !'}
+                        </p>
+                    </motion.div>
                 )}
             </div>
-            <AlphabeticalScroller onLetterClick={handleLetterScroll} />
+            <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
+            <AddBookDialog
+                open={isAddDialogOpen}
+                onOpenChange={setIsAddDialogOpen}
+                onAddBook={handleAddBook}
+            />
+            {selectedBook && (
+                <BookDetailDialog
+                    book={selectedBook}
+                    open={!!selectedBook}
+                    onOpenChange={() => setSelectedBook(null)}
+                    onUpdateBook={handleUpdateBook}
+                />
+            )}
         </div>
     );
 };

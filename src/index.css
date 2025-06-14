@@ -65,6 +65,20 @@
     .alphabet-letter {
         @apply p-1.5 cursor-pointer hover:text-primary font-medium text-xs text-gray-700 rounded-md hover:bg-primary/10 transition-all duration-150;
     }
+
+    .alphabet-scroller-horizontal {
+        @apply w-full mx-auto;
+        max-width: none;
+    }
+
+    .alphabet-letter-btn {
+        @apply w-7 h-7 flex items-center justify-center text-sm font-medium text-muted-foreground rounded-md border border-border/30 bg-background/60 backdrop-blur-sm cursor-pointer select-none flex-shrink-0 shadow-sm;
+        transition: color 0.1s ease, border-color 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .alphabet-letter-btn:hover {
+        @apply text-primary border-primary/50 bg-primary/10 shadow-md;
+    }
 }
 
 .book-card {

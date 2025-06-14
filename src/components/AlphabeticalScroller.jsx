@@ -3,28 +3,34 @@ import { motion } from 'framer-motion';
 
 const AlphabeticalScroller = ({ onLetterClick }) => {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const allButtons = ['#', ...alphabet];
 
     return (
         <motion.div
-            className="alphabet-slider"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
+            className="alphabet-scroller-horizontal"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
         >
-            {alphabet.map((letter, index) => (
-                <motion.div
-                    key={letter}
-                    className="alphabet-letter"
-                    onClick={() => onLetterClick(letter)}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.02 }}
-                    whileHover={{ scale: 1.1, color: 'var(--primary)' }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    {letter}
-                </motion.div>
-            ))}
+            <div className="flex justify-center gap-0.5 p-2 overflow-x-auto">
+                {allButtons.map((char, index) => (
+                    <motion.button
+                        key={char}
+                        className="alphabet-letter-btn"
+                        onClick={() => onLetterClick(char)}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2, delay: index * 0.01 }}
+                        whileHover={{ 
+                            scale: 1.1,
+                            transition: { duration: 0.1 }
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        {char}
+                    </motion.button>
+                ))}
+            </div>
         </motion.div>
     );
 };

@@ -117,23 +117,38 @@ const AuthorsPage = () => {
             )
         );
 
-    const handleLetterScroll = (letter) => {
-        const firstAuthorWithLetter = filteredAuthors.find((author) =>
-            author.lastName.toUpperCase().startsWith(letter)
-        );
+    const handleLetterScroll = (char) => {
+        let firstAuthorWithChar;
+        
+        if (char === '#') {
+            // Trouver le premier auteur dont le nom ne commence pas par une lettre
+            firstAuthorWithChar = filteredAuthors.find((author) => {
+                const firstChar = author.lastName.charAt(0).toUpperCase();
+                return !/^[A-Z]$/.test(firstChar);
+            });
+        } else {
+            // Trouver le premier auteur dont le nom commence par la lettre spécifiée
+            firstAuthorWithChar = filteredAuthors.find((author) =>
+                author.lastName.toUpperCase().startsWith(char)
+            );
+        }
+        
         if (
-            firstAuthorWithLetter &&
-            authorRefs.current[firstAuthorWithLetter.id]
+            firstAuthorWithChar &&
+            authorRefs.current[firstAuthorWithChar.id]
         ) {
-            authorRefs.current[firstAuthorWithLetter.id].scrollIntoView({
+            authorRefs.current[firstAuthorWithChar.id].scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
                 inline: 'nearest',
             });
         } else {
+            const description = char === '#' 
+                ? 'Aucun auteur dont le nom commence par un chiffre ou caractère spécial.'
+                : `Aucun auteur dont le nom commence par ${char}.`;
             toast({
                 title: 'Aucun auteur',
-                description: `Aucun auteur dont le nom commence par ${letter}.`,
+                description,
                 variant: 'destructive',
             });
         }
@@ -145,98 +160,94 @@ const AuthorsPage = () => {
     };
 
     return (
-        <div className="flex">
-            <div className="flex-grow space-y-8 pr-16">
-                {' '}
-                {/* Adjusted pr for AlphabeticalScroller width */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center"
-                >
-                    <h1 className="text-4xl font-bold main-title-text mb-2">
-                        Gestion des Auteurs
-                    </h1>
-                    <p className="text-muted-foreground text-lg">
-                        Découvrez et gérez vos auteurs favoris
-                    </p>
-                </motion.div>
-                <SearchBar
-                    placeholder="Rechercher un auteur..."
-                    value={searchTerm}
-                    onChange={setSearchTerm}
-                />
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredAuthors.length > 0 ? (
-                        filteredAuthors.map((author, index) => (
-                            <div
-                                key={author.id}
-                                ref={(el) =>
-                                    (authorRefs.current[author.id] = el)
-                                }
-                                className="h-full"
-                            >
-                                <AuthorCard
-                                    author={author}
-                                    index={index}
-                                    onClick={() => setSelectedAuthor(author)}
-                                />
-                            </div>
-                        ))
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="col-span-full text-center py-12"
+        <div className="space-y-8">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center"
+            >
+                <h1 className="text-4xl font-bold main-title-text mb-2">
+                    Gestion des Auteurs
+                </h1>
+                <p className="text-muted-foreground text-lg">
+                    Découvrez et gérez vos auteurs favoris
+                </p>
+            </motion.div>
+            <SearchBar
+                placeholder="Rechercher un auteur..."
+                value={searchTerm}
+                onChange={setSearchTerm}
+            />
+            <AlphabeticalScroller onLetterClick={handleLetterScroll} />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredAuthors.length > 0 ? (
+                    filteredAuthors.map((author, index) => (
+                        <div
+                            key={author.id}
+                            ref={(el) =>
+                                (authorRefs.current[author.id] = el)
+                            }
+                            className="h-full"
                         >
-                            <div className="text-gray-400 mb-4">
-                                <svg
-                                    className="mx-auto h-12 w-12"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                    />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-medium text-foreground mb-2">
+                            <AuthorCard
+                                author={author}
+                                index={index}
+                                onClick={() => setSelectedAuthor(author)}
+                            />
+                        </div>
+                    ))
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="col-span-full text-center py-12"
+                    >
+                        <div className="text-gray-400 mb-4">
+                            <svg
+                                className="mx-auto h-12 w-12"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">
                                 Aucun auteur trouvé
-                            </h3>
-                            <p className="text-muted-foreground">
-                                {searchTerm
-                                    ? 'Aucun auteur ne correspond à votre recherche.'
-                                    : 'Commencez par ajouter votre premier auteur !'}
-                            </p>
-                        </motion.div>
-                    )}
-                </div>
-                <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
-                <AddAuthorDialog
-                    open={isAddDialogOpen}
-                    onOpenChange={setIsAddDialogOpen}
-                    onAddAuthor={handleAddAuthor}
-                />
-                {selectedAuthor && (
-                    <AuthorDetailDialog
-                        author={selectedAuthor}
-                        books={getAuthorBooks(selectedAuthor)}
-                        open={!!selectedAuthor}
-                        onOpenChange={() => setSelectedAuthor(null)}
-                        onNavigateToBooks={(authorName) => {
-                            setSelectedAuthor(null);
-                            navigate(
-                                `/?search=${encodeURIComponent(authorName)}`
-                            );
-                        }}
-                    />
+                        </h3>
+                        <p className="text-muted-foreground">
+                            {searchTerm
+                                ? 'Aucun auteur ne correspond à votre recherche.'
+                                : 'Commencez par ajouter votre premier auteur !'}
+                        </p>
+                    </motion.div>
                 )}
             </div>
-            <AlphabeticalScroller onLetterClick={handleLetterScroll} />
+            <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
+            <AddAuthorDialog
+                open={isAddDialogOpen}
+                onOpenChange={setIsAddDialogOpen}
+                onAddAuthor={handleAddAuthor}
+            />
+            {selectedAuthor && (
+                <AuthorDetailDialog
+                    author={selectedAuthor}
+                    books={getAuthorBooks(selectedAuthor)}
+                    open={!!selectedAuthor}
+                    onOpenChange={() => setSelectedAuthor(null)}
+                    onNavigateToBooks={(authorName) => {
+                        setSelectedAuthor(null);
+                        navigate(
+                            `/?search=${encodeURIComponent(authorName)}`
+                        );
+                    }}
+                />
+            )}
         </div>
     );
 };
