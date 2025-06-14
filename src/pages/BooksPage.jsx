@@ -8,43 +8,65 @@ import AddBookDialog from '@/components/AddBookDialog';
 import BookDetailDialog from '@/components/BookDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
-
-const generateRandomString = (length) => {
-    const characters =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(
-            Math.floor(Math.random() * characters.length)
-        );
-    }
-    return result.trim();
-};
-
-const generateRandomBook = (id, authors) => {
-    const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
-    return {
-        id: id.toString(),
-        title: `Livre ${generateRandomString(5)} ${generateRandomString(8)}`,
-        author: `${randomAuthor.firstName} ${randomAuthor.lastName}`,
-        isbn: `${Math.floor(Math.random() * 9000000000000) + 1000000000000}`,
-        description: `Description aléatoire du livre ${id} avec quelques mots pour remplir l'espace.`,
-        shelf: `Étagère ${generateRandomString(3)}`,
-        publicationDate: `20${Math.floor(Math.random() * 20) + 0}${Math.floor(Math.random() * 9)}-0${Math.floor(Math.random() * 9) + 1}-${Math.floor(Math.random() * 20) + 10}`,
-        coverUrl: '',
-        status: ['read', 'reading', 'unread'][Math.floor(Math.random() * 3)],
-        pageCount: Math.floor(Math.random() * 500) + 50,
-    };
-};
+import { booksService } from '@/services/api';
 
 const BooksPage = ({ initialSearchTerm }) => {
     const [books, setBooks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
     const bookRefs = useRef({});
+
+    // Charger les livres depuis l'API
+    const loadBooks = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await booksService.getBooks(1);
+            
+            // Transformer les données API vers le format attendu par l'interface
+            const transformedBooks = response.data.map(book => ({
+                id: book.id,
+                title: book.title,
+                author: `${book.author.firstName} ${book.author.lastName}`,
+                isbn: book.isbn,
+                description: book.description,
+                shelf: book.shelf || 'Non classé', // Utiliser l'ID de l'étagère ou "Non classé"
+                publicationDate: book.date,
+                coverUrl: book.jacket || '', // URL de la couverture
+                status: 'unread', // Par défaut, on peut ajouter cette logique plus tard
+                pageCount: Math.floor(Math.random() * 500) + 50, // Temporaire, pas dans l'API
+            }));
+            
+            setBooks(transformedBooks);
+        } catch (err) {
+            console.error('Erreur lors du chargement des livres:', err);
+            setError('Impossible de charger les livres. Vérifiez que l\'API est démarrée.');
+            
+            // En cas d'erreur, utiliser des données de fallback
+            setBooks([
+                {
+                    id: '1',
+                    title: 'Exemple de livre',
+                    author: 'Auteur Test',
+                    isbn: '978-2-07-040850-1',
+                    description: 'Livre d\'exemple en attendant la connexion à l\'API.',
+                    shelf: 'Fiction',
+                    publicationDate: '2023-01-01',
+                    coverUrl: '',
+                    status: 'unread',
+                    pageCount: 200,
+                }
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -55,89 +77,42 @@ const BooksPage = ({ initialSearchTerm }) => {
     }, [location.search]);
 
     useEffect(() => {
-        const savedBooks = localStorage.getItem('library-books');
-        const savedAuthors = localStorage.getItem('library-authors');
-        let authorsData = [];
-        if (savedAuthors) {
-            authorsData = JSON.parse(savedAuthors);
-        }
-
-        if (savedBooks) {
-            setBooks(JSON.parse(savedBooks));
-        } else {
-            const sampleBooks = [
-                {
-                    id: '1',
-                    title: 'Petit Prince',
-                    author: 'Antoine de Saint-Exupéry',
-                    isbn: '978-2-07-040850-1',
-                    description:
-                        "Un conte poétique et philosophique sous l'apparence d'un conte pour enfants.",
-                    shelf: 'Fiction',
-                    publicationDate: '1943-04-06',
-                    coverUrl: '',
-                    status: 'read',
-                    pageCount: 96,
-                },
-                {
-                    id: '2',
-                    title: '1984',
-                    author: 'George Orwell',
-                    isbn: '978-0-452-28423-4',
-                    description:
-                        'Un roman dystopique qui dépeint une société totalitaire.',
-                    shelf: 'Science-Fiction',
-                    publicationDate: '1949-06-08',
-                    coverUrl: '',
-                    status: 'reading',
-                    pageCount: 328,
-                },
-                {
-                    id: '3',
-                    title: "Zatsby le Magnifique, un roman qui explore les thèmes du rêve américain, de la richesse, de l'amour et de la perte dans les années 1920.",
-                    author: 'F. Scott Fitzgerald',
-                    isbn: '978-0743273565',
-                    description:
-                        'Un roman sur le rêve américain et la décadence des années 20.',
-                    shelf: 'Classiques Américains du XXe Siècle',
-                    publicationDate: '1925-04-10',
-                    coverUrl: '',
-                    status: 'unread',
-                    pageCount: 180,
-                },
-            ];
-
-            const generatedBooks = Array.from({ length: 50 }, (_, i) =>
-                generateRandomBook(
-                    i + 4,
-                    authorsData.length > 0
-                        ? authorsData
-                        : [{ firstName: 'Auteur', lastName: 'Aléatoire' }]
-                )
-            );
-            const allBooks = [...sampleBooks, ...generatedBooks];
-            setBooks(allBooks.sort((a, b) => a.title.localeCompare(b.title)));
-            localStorage.setItem('library-books', JSON.stringify(allBooks));
-        }
+        loadBooks();
     }, []);
 
     const handleAddBook = (newBook) => {
-        const updatedBooks = [...books, newBook].sort((a, b) =>
+        // TODO: Appeler l'API pour ajouter le livre
+        console.log('Ajout de livre via API à implémenter:', newBook);
+        
+        // Pour l'instant, on ajoute localement en attendant l'implémentation POST
+        const bookWithId = {
+            ...newBook,
+            id: Date.now().toString(), // ID temporaire
+        };
+        const updatedBooks = [...books, bookWithId].sort((a, b) =>
             a.title.localeCompare(b.title)
         );
         setBooks(updatedBooks);
-        localStorage.setItem('library-books', JSON.stringify(updatedBooks));
+        
+        toast({
+            title: 'Livre ajouté!',
+            description: `${newBook.title} a été ajouté (temporairement).`,
+        });
     };
 
     const handleUpdateBook = (updatedBook) => {
+        // TODO: Appeler l'API pour mettre à jour le livre
+        console.log('Mise à jour de livre via API à implémenter:', updatedBook);
+        
+        // Pour l'instant, on met à jour localement
         const updatedBooks = books.map((book) =>
             book.id === updatedBook.id ? updatedBook : book
         );
         setBooks(updatedBooks);
-        localStorage.setItem('library-books', JSON.stringify(updatedBooks));
+        
         toast({
             title: 'Livre mis à jour!',
-            description: `${updatedBook.title} a été mis à jour.`,
+            description: `${updatedBook.title} a été mis à jour (temporairement).`,
         });
     };
 
@@ -216,53 +191,77 @@ const BooksPage = ({ initialSearchTerm }) => {
                 }}
             />
             <AlphabeticalScroller onLetterClick={handleLetterScroll} />
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredBooks.length > 0 ? (
-                    filteredBooks.map((book, index) => (
-                        <div
-                            key={book.id}
-                            ref={(el) => (bookRefs.current[book.id] = el)}
-                            className="h-full"
-                        >
-                            <BookCard
-                                book={book}
-                                index={index}
-                                onClick={() => setSelectedBook(book)}
-                            />
-                        </div>
-                    ))
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="col-span-full text-center py-12"
+            
+            {/* Indicateur de chargement */}
+            {loading ? (
+                <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Chargement des livres...</p>
+                </div>
+            ) : error ? (
+                <div className="text-center py-12">
+                    <div className="text-destructive mb-4">
+                        <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <p className="text-destructive mb-4">{error}</p>
+                    <button 
+                        onClick={loadBooks}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
-                        <div className="text-gray-400 mb-4">
-                            <svg
-                                className="mx-auto h-12 w-12"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        Réessayer
+                    </button>
+                </div>
+            ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredBooks.length > 0 ? (
+                        filteredBooks.map((book, index) => (
+                            <div
+                                key={book.id}
+                                ref={(el) => (bookRefs.current[book.id] = el)}
+                                className="h-full"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                <BookCard
+                                    book={book}
+                                    index={index}
+                                    onClick={() => setSelectedBook(book)}
                                 />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-foreground mb-2">
+                            </div>
+                        ))
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="col-span-full text-center py-12"
+                        >
+                            <div className="text-gray-400 mb-4">
+                                <svg
+                                    className="mx-auto h-12 w-12"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-foreground mb-2">
                             Aucun livre trouvé
-                        </h3>
-                        <p className="text-muted-foreground">
-                            {searchTerm
-                                ? 'Aucun livre ne correspond à votre recherche.'
-                                : 'Commencez par ajouter votre premier livre !'}
-                        </p>
-                    </motion.div>
-                )}
-            </div>
+                            </h3>
+                            <p className="text-muted-foreground">
+                                {searchTerm
+                                    ? 'Aucun livre ne correspond à votre recherche.'
+                                    : 'Commencez par ajouter votre premier livre !'}
+                            </p>
+                        </motion.div>
+                    )}
+                </div>
+            )}
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
             <AddBookDialog
                 open={isAddDialogOpen}

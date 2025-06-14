@@ -188,6 +188,13 @@ export default defineConfig({
     plugins: [react(), addTransformIndexHtml],
     server: {
         cors: true,
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3000',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
         headers: {
             'Cross-Origin-Embedder-Policy': 'credentialless',
         },
