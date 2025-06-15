@@ -32,7 +32,8 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const [showShelfDropdown, setShowShelfDropdown] = useState(false);
 
     // Validation des champs obligatoires
-    const isFormValid = formData.isbn.trim() && formData.title.trim() && formData.author.trim();
+    const isFormValid =
+        formData.isbn.trim() && formData.title.trim() && formData.author.trim();
 
     // Charger les auteurs et étagères
     useEffect(() => {
@@ -40,7 +41,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
             try {
                 const [authorsRes, shelvesRes] = await Promise.all([
                     authorsService.getAuthors(1),
-                    shelvesService.getShelves(1)
+                    shelvesService.getShelves(1),
                 ]);
                 setAuthors(authorsRes.data || []);
                 setShelves(shelvesRes.data || []);
@@ -66,14 +67,16 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     // Gestion de l'autocomplete auteur
     const handleAuthorChange = (value) => {
         setFormData({ ...formData, author: value });
-        
+
         if (value.trim()) {
             const normalized = normalizeString(value);
-            const filtered = authors.filter(author => {
+            const filtered = authors.filter((author) => {
                 const fullName1 = `${author.firstName} ${author.lastName}`;
                 const fullName2 = `${author.lastName} ${author.firstName}`;
-                return normalizeString(fullName1).includes(normalized) ||
-                       normalizeString(fullName2).includes(normalized);
+                return (
+                    normalizeString(fullName1).includes(normalized) ||
+                    normalizeString(fullName2).includes(normalized)
+                );
             });
             setFilteredAuthors(filtered);
             setShowAuthorDropdown(true);
@@ -85,10 +88,10 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     // Gestion de l'autocomplete étagère
     const handleShelfChange = (value) => {
         setFormData({ ...formData, shelf: value });
-        
+
         if (value.trim()) {
             const normalized = normalizeString(value);
-            const filtered = shelves.filter(shelf => 
+            const filtered = shelves.filter((shelf) =>
                 normalizeString(shelf.name).includes(normalized)
             );
             setFilteredShelves(filtered);
@@ -100,7 +103,10 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
 
     // Sélection d'un auteur
     const selectAuthor = (author) => {
-        setFormData({ ...formData, author: `${author.firstName} ${author.lastName}` });
+        setFormData({
+            ...formData,
+            author: `${author.firstName} ${author.lastName}`,
+        });
         setShowAuthorDropdown(false);
     };
 
@@ -115,7 +121,8 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         if (!isFormValid) {
             toast({
                 title: 'Erreur',
-                description: 'Veuillez remplir tous les champs obligatoires (ISBN, Titre, Auteur).',
+                description:
+                    'Veuillez remplir tous les champs obligatoires (ISBN, Titre, Auteur).',
                 variant: 'destructive',
             });
             return;
@@ -211,22 +218,30 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                             <Input
                                 id="author"
                                 value={formData.author}
-                                onChange={(e) => handleAuthorChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleAuthorChange(e.target.value)
+                                }
                                 onFocus={() => {
-                                    if (formData.author.trim() && filteredAuthors.length > 0) {
+                                    if (
+                                        formData.author.trim() &&
+                                        filteredAuthors.length > 0
+                                    ) {
                                         setShowAuthorDropdown(true);
                                     }
                                 }}
                                 onBlur={() => {
                                     // Délai pour permettre le clic sur les options
-                                    setTimeout(() => setShowAuthorDropdown(false), 200);
+                                    setTimeout(
+                                        () => setShowAuthorDropdown(false),
+                                        200
+                                    );
                                 }}
                                 placeholder="Nom de l'auteur (ex: Victor Hugo)"
                                 required
                             />
                             <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                         </div>
-                        
+
                         {/* Dropdown des auteurs */}
                         {showAuthorDropdown && filteredAuthors.length > 0 && (
                             <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -267,35 +282,46 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                                 <Input
                                     id="shelf"
                                     value={formData.shelf}
-                                    onChange={(e) => handleShelfChange(e.target.value)}
+                                    onChange={(e) =>
+                                        handleShelfChange(e.target.value)
+                                    }
                                     onFocus={() => {
-                                        if (formData.shelf.trim() && filteredShelves.length > 0) {
+                                        if (
+                                            formData.shelf.trim() &&
+                                            filteredShelves.length > 0
+                                        ) {
                                             setShowShelfDropdown(true);
                                         }
                                     }}
                                     onBlur={() => {
                                         // Délai pour permettre le clic sur les options
-                                        setTimeout(() => setShowShelfDropdown(false), 200);
+                                        setTimeout(
+                                            () => setShowShelfDropdown(false),
+                                            200
+                                        );
                                     }}
                                     placeholder="Nom de l'étagère"
                                 />
                                 <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                             </div>
-                            
+
                             {/* Dropdown des étagères */}
-                            {showShelfDropdown && filteredShelves.length > 0 && (
-                                <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                    {filteredShelves.map((shelf) => (
-                                        <div
-                                            key={shelf.id}
-                                            className="px-3 py-2 hover:bg-accent cursor-pointer"
-                                            onClick={() => selectShelf(shelf)}
-                                        >
-                                            {shelf.name}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            {showShelfDropdown &&
+                                filteredShelves.length > 0 && (
+                                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                        {filteredShelves.map((shelf) => (
+                                            <div
+                                                key={shelf.id}
+                                                className="px-3 py-2 hover:bg-accent cursor-pointer"
+                                                onClick={() =>
+                                                    selectShelf(shelf)
+                                                }
+                                            >
+                                                {shelf.name}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                         </div>
                     </div>
 
