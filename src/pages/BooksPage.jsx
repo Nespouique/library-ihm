@@ -8,7 +8,7 @@ import AddBookDialog from '@/components/AddBookDialog';
 import BookDetailDialog from '@/components/BookDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
-import { booksService } from '@/services/api';
+import { booksService, shelvesService } from '@/services/api';
 
 const BooksPage = ({ initialSearchTerm }) => {
     const [books, setBooks] = useState([]);
@@ -27,20 +27,30 @@ const BooksPage = ({ initialSearchTerm }) => {
             setLoading(true);
             setError(null);
 
-            const response = await booksService.getBooks(1);
+            // Charger les livres et les étagères en parallèle
+            const [booksResponse, shelvesResponse] = await Promise.all([
+                booksService.getBooks(1),
+                shelvesService.getShelves(1),
+            ]);
+
+            // Créer un mapping ID étagère -> nom étagère
+            const shelvesMap = {};
+            shelvesResponse.data.forEach((shelf) => {
+                shelvesMap[shelf.id] = shelf.name;
+            });
 
             // Transformer les données API vers le format attendu par l'interface
-            const transformedBooks = response.data.map((book) => ({
+            const transformedBooks = booksResponse.data.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: `${book.author.firstName} ${book.author.lastName}`,
                 isbn: book.isbn,
                 description: book.description,
-                shelf: book.shelf || 'Non classé', // Utiliser l'ID de l'étagère ou "Non classé"
+                shelf: book.shelf
+                    ? shelvesMap[book.shelf] || book.shelf
+                    : 'Non classé', // Utiliser le nom de l'étagère
                 publicationDate: book.date,
-                coverUrl: book.jacket || '', // URL de la couverture
-                status: 'unread', // Par défaut, on peut ajouter cette logique plus tard
-                pageCount: Math.floor(Math.random() * 500) + 50, // Temporaire, pas dans l'API
+                jacket: book.jacket, // Nom du fichier jacket de l'API
             }));
 
             setBooks(transformedBooks);

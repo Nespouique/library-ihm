@@ -2,6 +2,12 @@ import React from 'react';
 import { Book, User, Hash } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Helper function to get jacket image URL from API
+const getImageUrl = (book, size = 'small') => {
+    if (!book?.id || !book?.jacket) return '/placeholder-book.svg';
+    return `/api/books/${book.id}/jacket/${size}`;
+};
+
 const BookCard = ({ book, index, onClick }) => {
     return (
         <motion.div
