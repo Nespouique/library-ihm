@@ -14,8 +14,6 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        birthDate: '',
-        deathDate: '',
     });
 
     const handleSubmit = (e) => {
@@ -38,8 +36,6 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
         setFormData({
             firstName: '',
             lastName: '',
-            birthDate: '',
-            deathDate: '',
         });
 
         onOpenChange(false);
@@ -89,37 +85,6 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
                                 }
                                 placeholder="Nom"
                                 required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label htmlFor="birthDate">Date de naissance</Label>
-                            <Input
-                                id="birthDate"
-                                type="date"
-                                value={formData.birthDate}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        birthDate: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="deathDate">Date de décès</Label>
-                            <Input
-                                id="deathDate"
-                                type="date"
-                                value={formData.deathDate}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        deathDate: e.target.value,
-                                    })
-                                }
                             />
                         </div>
                     </div>

@@ -5,16 +5,40 @@ const API_BASE_URL = '/api'; // Utilise le proxy Vite
 class ApiService {
     constructor(baseUrl = API_BASE_URL) {
         this.baseUrl = baseUrl;
-    }
-
-    async fetchJson(endpoint) {
-        const response = await fetch(`${this.baseUrl}${endpoint}`);
+    }    async fetchJson(endpoint, options = {}) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+            ...options,
+        });
         
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
         
         return response.json();
+    }
+
+    async postJson(endpoint, data) {
+        return this.fetchJson(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async putJson(endpoint, data) {
+        return this.fetchJson(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteJson(endpoint) {
+        return this.fetchJson(endpoint, {
+            method: 'DELETE',
+        });
     }
 }
 
@@ -27,6 +51,18 @@ export class AuthorsService extends ApiService {
     async getAuthor(id) {
         return this.fetchJson(`/authors/${id}`);
     }
+
+    async createAuthor(authorData) {
+        return this.postJson('/authors', authorData);
+    }
+
+    async updateAuthor(id, authorData) {
+        return this.putJson(`/authors/${id}`, authorData);
+    }
+
+    async deleteAuthor(id) {
+        return this.deleteJson(`/authors/${id}`);
+    }
 }
 
 // Service pour les livres
@@ -38,6 +74,18 @@ export class BooksService extends ApiService {
     async getBook(id) {
         return this.fetchJson(`/books/${id}`);
     }
+
+    async createBook(bookData) {
+        return this.postJson('/books', bookData);
+    }
+
+    async updateBook(id, bookData) {
+        return this.putJson(`/books/${id}`, bookData);
+    }
+
+    async deleteBook(id) {
+        return this.deleteJson(`/books/${id}`);
+    }
 }
 
 // Service pour les étagères
@@ -48,6 +96,18 @@ export class ShelvesService extends ApiService {
 
     async getShelf(id) {
         return this.fetchJson(`/shelves/${id}`);
+    }
+
+    async createShelf(shelfData) {
+        return this.postJson('/shelves', shelfData);
+    }
+
+    async updateShelf(id, shelfData) {
+        return this.putJson(`/shelves/${id}`, shelfData);
+    }
+
+    async deleteShelf(id) {
+        return this.deleteJson(`/shelves/${id}`);
     }
 }
 

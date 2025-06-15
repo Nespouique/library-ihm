@@ -57,7 +57,7 @@ const ShelvesPage = () => {
                 
                 return {
                     id: shelf.id,
-                    name: `Étagère ${shelf.id.substring(0, 8)}...`, // Nom temporaire basé sur l'ID
+                    name: shelf.name || `Étagère ${shelf.id.substring(0, 8)}`, // Utiliser le nom de l'API ou fallback
                     bookCount: shelfBookCount,
                 };
             });
@@ -72,7 +72,7 @@ const ShelvesPage = () => {
                 });
             }
             
-            setShelves(transformedShelves.sort((a, b) => a.name.localeCompare(b.name)));
+            setShelves(sortShelves(transformedShelves));
         } catch (err) {
             console.error('Erreur lors du chargement des étagères:', err);
             setError('Impossible de charger les étagères. Vérifiez que l\'API est démarrée.');
@@ -101,40 +101,78 @@ const ShelvesPage = () => {
         loadData();
     }, []);
 
-    const handleAddShelf = (newShelf) => {
-        // TODO: Appeler l'API pour ajouter l'étagère
-        console.log('Ajout d\'étagère via API à implémenter:', newShelf);
-        
-        // Pour l'instant, on ajoute localement en attendant l'implémentation POST
-        const shelfWithId = {
-            ...newShelf,
-            id: Date.now().toString(), // ID temporaire
-            bookCount: 0,
-        };
-        const updatedShelves = [...shelves, shelfWithId].sort((a, b) =>
-            a.name.localeCompare(b.name)
-        );
-        setShelves(updatedShelves);
-        
-        toast({
-            title: 'Étagère ajoutée!',
-            description: `${newShelf.name} a été ajoutée (temporairement).`,
+    // Fonction de tri personnalisée pour les étagères
+    const sortShelves = (shelves) => {
+        return shelves.sort((a, b) => {
+            // "Non classé" toujours en premier
+            if (a.id === 'unclassified') return -1;
+            if (b.id === 'unclassified') return 1;
+            
+            // Pour les étagères numérotées, extraire le numéro pour un tri numérique
+            const aMatch = a.name.match(/Étagère (\d+)/);
+            const bMatch = b.name.match(/Étagère (\d+)/);
+            
+            if (aMatch && bMatch) {
+                // Si les deux sont des étagères numérotées, trier par numéro
+                const aNum = parseInt(aMatch[1], 10);
+                const bNum = parseInt(bMatch[1], 10);
+                return aNum - bNum;
+            }
+            
+            // Sinon, tri alphabétique normal
+            return a.name.localeCompare(b.name);
         });
     };
 
-    const filteredShelves = shelves
-        .filter((shelf) =>
+    const handleAddShelf = async (newShelf) => {
+        try {
+            // Appeler l'API pour créer l'étagère
+            const response = await shelvesService.createShelf(newShelf);
+            console.log('Étagère créée via API:', response);
+            
+            // Ajouter l'étagère à la liste locale avec le bon ID et nom de l'API
+            const shelfFromApi = {
+                id: response.id || response.data?.id, // L'API retourne l'ID de l'étagère créée
+                name: response.name || response.data?.name || newShelf.name, // Utiliser le nom confirmé par l'API
+                bookCount: 0, // Nouvelle étagère, pas de livres pour l'instant
+            };
+            
+            const updatedShelves = sortShelves([...shelves, shelfFromApi]);
+            setShelves(updatedShelves);
+            
+            toast({
+                title: 'Étagère ajoutée!',
+                description: `${newShelf.name} a été ajoutée avec succès.`,
+            });
+        } catch (error) {
+            console.error('Erreur lors de la création de l\'étagère:', error);
+            toast({
+                title: 'Erreur!',
+                description: `Impossible d'ajouter l'étagère: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const filteredShelves = sortShelves(
+        shelves.filter((shelf) =>
             shelf.name.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        .sort((a, b) => a.name.localeCompare(b.name));
+    );
 
     const getShelfBooks = (shelf) => {
+        let shelfBooks;
+        
         // Utiliser l'ID de l'étagère pour le matching exact
         if (shelf.id === 'unclassified') {
             // Cas spécial pour les livres non classés
-            return books.filter((book) => !book.shelf);
+            shelfBooks = books.filter((book) => !book.shelf);
+        } else {
+            shelfBooks = books.filter((book) => book.shelf === shelf.id);
         }
-        return books.filter((book) => book.shelf === shelf.id);
+        
+        // Trier les livres par ordre alphabétique (titre)
+        return shelfBooks.sort((a, b) => a.title.localeCompare(b.title));
     };
 
     return (

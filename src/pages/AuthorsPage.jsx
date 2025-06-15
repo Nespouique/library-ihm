@@ -109,29 +109,66 @@ const AuthorsPage = () => {
         loadData();
     }, []);
 
-    const handleAddAuthor = (newAuthor) => {
-        // TODO: Appeler l'API pour ajouter l'auteur
-        console.log('Ajout d\'auteur via API à implémenter:', newAuthor);
-        
-        // Pour l'instant, on ajoute localement en attendant l'implémentation POST
-        const authorWithId = {
-            ...newAuthor,
-            id: Date.now().toString(), // ID temporaire
-            bookCount: 0,
-            birthDate: newAuthor.birthDate || null,
-            deathDate: newAuthor.deathDate || null,
-        };
-        const updatedAuthors = [...authors, authorWithId].sort((a, b) => {
-            const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
-            const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
-            return nameA.localeCompare(nameB);
-        });
-        setAuthors(updatedAuthors);
-        
-        toast({
-            title: 'Auteur ajouté!',
-            description: `${newAuthor.firstName} ${newAuthor.lastName} a été ajouté (temporairement).`,
-        });
+    // Fonctions utilitaires pour normaliser les noms
+    const normalizeFirstName = (firstName) => {
+        if (!firstName) return '';
+        return firstName
+            .toLowerCase()
+            .split(/(\s+|-)/) // Diviser sur espaces ET traits d'union
+            .map(part => {
+                // Si c'est un séparateur (espace ou trait d'union), le retourner tel quel
+                if (/^\s+$/.test(part) || part === '-') return part;
+                // Sinon, capitaliser la première lettre
+                return part.charAt(0).toUpperCase() + part.slice(1);
+            })
+            .join('');
+    };
+
+    const normalizeLastName = (lastName) => {
+        if (!lastName) return '';
+        return lastName.toUpperCase();
+    };
+
+    const handleAddAuthor = async (newAuthor) => {
+        try {
+            // Normaliser les noms avant l'envoi à l'API
+            const normalizedAuthor = {
+                ...newAuthor,
+                firstName: normalizeFirstName(newAuthor.firstName),
+                lastName: normalizeLastName(newAuthor.lastName),
+            };
+
+            // Appeler l'API pour créer l'auteur
+            const response = await authorsService.createAuthor(normalizedAuthor);
+            console.log('Auteur créé via API:', response);
+            
+            // Ajouter l'auteur à la liste locale avec le bon ID de l'API et les noms normalisés
+            const authorFromApi = {
+                id: response.id || response.data?.id, // L'API retourne l'ID de l'auteur créé
+                firstName: normalizedAuthor.firstName, // Utiliser le prénom normalisé
+                lastName: normalizedAuthor.lastName,   // Utiliser le nom normalisé
+                bookCount: 0, // Nouvel auteur, pas de livres pour l'instant
+            };
+            
+            const updatedAuthors = [...authors, authorFromApi].sort((a, b) => {
+                const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
+                const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
+                return nameA.localeCompare(nameB);
+            });
+            setAuthors(updatedAuthors);
+            
+            toast({
+                title: 'Auteur ajouté!',
+                description: `${normalizedAuthor.firstName} ${normalizedAuthor.lastName} a été ajouté avec succès.`,
+            });
+        } catch (error) {
+            console.error('Erreur lors de la création de l\'auteur:', error);
+            toast({
+                title: 'Erreur!',
+                description: `Impossible d'ajouter l'auteur: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
     };
 
     const filteredAuthors = authors
@@ -192,8 +229,9 @@ const AuthorsPage = () => {
     };
 
     const getAuthorBooks = (author) => {
-        // Utiliser l'ID de l'auteur pour un matching exact
-        return books.filter((book) => book.authorId === author.id);
+        // Utiliser l'ID de l'auteur pour un matching exact et trier par titre
+        const authorBooks = books.filter((book) => book.authorId === author.id);
+        return authorBooks.sort((a, b) => a.title.localeCompare(b.title));
     };
 
     return (

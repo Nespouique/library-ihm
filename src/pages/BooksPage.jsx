@@ -80,24 +80,57 @@ const BooksPage = ({ initialSearchTerm }) => {
         loadBooks();
     }, []);
 
-    const handleAddBook = (newBook) => {
-        // TODO: Appeler l'API pour ajouter le livre
-        console.log('Ajout de livre via API à implémenter:', newBook);
-        
-        // Pour l'instant, on ajoute localement en attendant l'implémentation POST
-        const bookWithId = {
-            ...newBook,
-            id: Date.now().toString(), // ID temporaire
-        };
-        const updatedBooks = [...books, bookWithId].sort((a, b) =>
-            a.title.localeCompare(b.title)
-        );
-        setBooks(updatedBooks);
-        
-        toast({
-            title: 'Livre ajouté!',
-            description: `${newBook.title} a été ajouté (temporairement).`,
-        });
+    const handleAddBook = async (newBook) => {
+        try {
+            // Préparer les données pour l'API (format attendu par l'API)
+            const bookDataForApi = {
+                title: newBook.title,
+                author: {
+                    firstName: newBook.author.split(' ')[0] || '', // Première partie du nom
+                    lastName: newBook.author.split(' ').slice(1).join(' ') || '', // Reste du nom
+                },
+                isbn: newBook.isbn,
+                description: newBook.description,
+                date: newBook.publicationDate,
+                jacket: newBook.coverUrl,
+                shelf: newBook.shelf !== 'Non classé' ? newBook.shelf : null,
+            };
+            
+            // Appeler l'API pour créer le livre
+            const response = await booksService.createBook(bookDataForApi);
+            console.log('Livre créé via API:', response);
+            
+            // Ajouter le livre à la liste locale avec le bon ID de l'API
+            const bookFromApi = {
+                id: response.id || response.data?.id,
+                title: newBook.title,
+                author: newBook.author,
+                isbn: newBook.isbn,
+                description: newBook.description,
+                shelf: newBook.shelf,
+                publicationDate: newBook.publicationDate,
+                coverUrl: newBook.coverUrl,
+                status: newBook.status || 'unread',
+                pageCount: newBook.pageCount || 0,
+            };
+            
+            const updatedBooks = [...books, bookFromApi].sort((a, b) =>
+                a.title.localeCompare(b.title)
+            );
+            setBooks(updatedBooks);
+            
+            toast({
+                title: 'Livre ajouté!',
+                description: `${newBook.title} a été ajouté avec succès.`,
+            });
+        } catch (error) {
+            console.error('Erreur lors de la création du livre:', error);
+            toast({
+                title: 'Erreur!',
+                description: `Impossible d'ajouter le livre: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
     };
 
     const handleUpdateBook = (updatedBook) => {
