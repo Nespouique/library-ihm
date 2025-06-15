@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -9,28 +9,113 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera } from 'lucide-react';
+import { Camera, ChevronDown } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { authorsService, shelvesService } from '@/services/api';
 
 const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const [formData, setFormData] = useState({
+        isbn: '',
         title: '',
         author: '',
-        isbn: '',
-        description: '',
-        shelf: '',
         publicationDate: '',
-        coverUrl: '',
-        status: 'unread',
-        pageCount: '',
+        shelf: '',
+        description: '',
     });
+
+    // États pour les autocompletes
+    const [authors, setAuthors] = useState([]);
+    const [shelves, setShelves] = useState([]);
+    const [filteredAuthors, setFilteredAuthors] = useState([]);
+    const [filteredShelves, setFilteredShelves] = useState([]);
+    const [showAuthorDropdown, setShowAuthorDropdown] = useState(false);
+    const [showShelfDropdown, setShowShelfDropdown] = useState(false);
+
+    // Validation des champs obligatoires
+    const isFormValid = formData.isbn.trim() && formData.title.trim() && formData.author.trim();
+
+    // Charger les auteurs et étagères
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [authorsRes, shelvesRes] = await Promise.all([
+                    authorsService.getAuthors(1),
+                    shelvesService.getShelves(1)
+                ]);
+                setAuthors(authorsRes.data || []);
+                setShelves(shelvesRes.data || []);
+            } catch (error) {
+                console.error('Erreur lors du chargement des données:', error);
+            }
+        };
+
+        if (open) {
+            loadData();
+        }
+    }, [open]);
+
+    // Fonction pour normaliser les chaînes (sans casse, accents, tirets)
+    const normalizeString = (str) => {
+        return str
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[-\s]/g, '');
+    };
+
+    // Gestion de l'autocomplete auteur
+    const handleAuthorChange = (value) => {
+        setFormData({ ...formData, author: value });
+        
+        if (value.trim()) {
+            const normalized = normalizeString(value);
+            const filtered = authors.filter(author => {
+                const fullName1 = `${author.firstName} ${author.lastName}`;
+                const fullName2 = `${author.lastName} ${author.firstName}`;
+                return normalizeString(fullName1).includes(normalized) ||
+                       normalizeString(fullName2).includes(normalized);
+            });
+            setFilteredAuthors(filtered);
+            setShowAuthorDropdown(true);
+        } else {
+            setShowAuthorDropdown(false);
+        }
+    };
+
+    // Gestion de l'autocomplete étagère
+    const handleShelfChange = (value) => {
+        setFormData({ ...formData, shelf: value });
+        
+        if (value.trim()) {
+            const normalized = normalizeString(value);
+            const filtered = shelves.filter(shelf => 
+                normalizeString(shelf.name).includes(normalized)
+            );
+            setFilteredShelves(filtered);
+            setShowShelfDropdown(true);
+        } else {
+            setShowShelfDropdown(false);
+        }
+    };
+
+    // Sélection d'un auteur
+    const selectAuthor = (author) => {
+        setFormData({ ...formData, author: `${author.firstName} ${author.lastName}` });
+        setShowAuthorDropdown(false);
+    };
+
+    // Sélection d'une étagère
+    const selectShelf = (shelf) => {
+        setFormData({ ...formData, shelf: shelf.name });
+        setShowShelfDropdown(false);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.title || !formData.author) {
+        if (!isFormValid) {
             toast({
                 title: 'Erreur',
-                description: "Veuillez remplir au moins le titre et l'auteur.",
+                description: 'Veuillez remplir tous les champs obligatoires (ISBN, Titre, Auteur).',
                 variant: 'destructive',
             });
             return;
@@ -39,19 +124,15 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         onAddBook({
             ...formData,
             id: Date.now().toString(),
-            pageCount: formData.pageCount ? parseInt(formData.pageCount) : 0,
         });
 
         setFormData({
+            isbn: '',
             title: '',
             author: '',
-            isbn: '',
-            description: '',
-            shelf: '',
             publicationDate: '',
-            coverUrl: '',
-            status: 'unread',
-            pageCount: '',
+            shelf: '',
+            description: '',
         });
 
         onOpenChange(false);
@@ -88,7 +169,25 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                     </div>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-3 pt-2">
+                <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                    {/* 1. ISBN - obligatoire, toute la largeur */}
+                    <div className="space-y-1">
+                        <Label htmlFor="isbn">ISBN *</Label>
+                        <Input
+                            id="isbn"
+                            value={formData.isbn}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    isbn: e.target.value,
+                                })
+                            }
+                            placeholder="ISBN du livre"
+                            required
+                        />
+                    </div>
+
+                    {/* 2. Titre - obligatoire, toute la largeur */}
                     <div className="space-y-1">
                         <Label htmlFor="title">Titre *</Label>
                         <Input
@@ -105,53 +204,46 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                         />
                     </div>
 
-                    <div className="space-y-1">
+                    {/* 3. Auteur - obligatoire, toute la largeur avec autocomplete */}
+                    <div className="space-y-1 relative">
                         <Label htmlFor="author">Auteur *</Label>
-                        <Input
-                            id="author"
-                            value={formData.author}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    author: e.target.value,
-                                })
-                            }
-                            placeholder="Nom de l'auteur"
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="author"
+                                value={formData.author}
+                                onChange={(e) => handleAuthorChange(e.target.value)}
+                                onFocus={() => {
+                                    if (formData.author.trim() && filteredAuthors.length > 0) {
+                                        setShowAuthorDropdown(true);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    // Délai pour permettre le clic sur les options
+                                    setTimeout(() => setShowAuthorDropdown(false), 200);
+                                }}
+                                placeholder="Nom de l'auteur (ex: Victor Hugo)"
+                                required
+                            />
+                            <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                        </div>
+                        
+                        {/* Dropdown des auteurs */}
+                        {showAuthorDropdown && filteredAuthors.length > 0 && (
+                            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredAuthors.map((author) => (
+                                    <div
+                                        key={author.id}
+                                        className="px-3 py-2 hover:bg-accent cursor-pointer"
+                                        onClick={() => selectAuthor(author)}
+                                    >
+                                        {author.firstName} {author.lastName}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label htmlFor="isbn">ISBN</Label>
-                            <Input
-                                id="isbn"
-                                value={formData.isbn}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        isbn: e.target.value,
-                                    })
-                                }
-                                placeholder="ISBN"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="shelf">Étagère</Label>
-                            <Input
-                                id="shelf"
-                                value={formData.shelf}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        shelf: e.target.value,
-                                    })
-                                }
-                                placeholder="Étagère"
-                            />
-                        </div>
-                    </div>
-
+                    {/* 4. Date de parution + Étagère - non obligatoires, moitié largeur chacun */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <Label htmlFor="publicationDate">
@@ -169,38 +261,45 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                                 }
                             />
                         </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="pageCount">Nombre de pages</Label>
-                            <Input
-                                id="pageCount"
-                                type="number"
-                                value={formData.pageCount}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        pageCount: e.target.value,
-                                    })
-                                }
-                                placeholder="Pages"
-                            />
+                        <div className="space-y-1 relative">
+                            <Label htmlFor="shelf">Étagère</Label>
+                            <div className="relative">
+                                <Input
+                                    id="shelf"
+                                    value={formData.shelf}
+                                    onChange={(e) => handleShelfChange(e.target.value)}
+                                    onFocus={() => {
+                                        if (formData.shelf.trim() && filteredShelves.length > 0) {
+                                            setShowShelfDropdown(true);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        // Délai pour permettre le clic sur les options
+                                        setTimeout(() => setShowShelfDropdown(false), 200);
+                                    }}
+                                    placeholder="Nom de l'étagère"
+                                />
+                                <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                            </div>
+                            
+                            {/* Dropdown des étagères */}
+                            {showShelfDropdown && filteredShelves.length > 0 && (
+                                <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                    {filteredShelves.map((shelf) => (
+                                        <div
+                                            key={shelf.id}
+                                            className="px-3 py-2 hover:bg-accent cursor-pointer"
+                                            onClick={() => selectShelf(shelf)}
+                                        >
+                                            {shelf.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className="space-y-1">
-                        <Label htmlFor="coverUrl">URL de la couverture</Label>
-                        <Input
-                            id="coverUrl"
-                            value={formData.coverUrl}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    coverUrl: e.target.value,
-                                })
-                            }
-                            placeholder="https://exemple.com/couverture.jpg"
-                        />
-                    </div>
-
+                    {/* 5. Description - non obligatoire, toute la largeur */}
                     <div className="space-y-1">
                         <Label htmlFor="description">Description</Label>
                         <Textarea
@@ -213,7 +312,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                                 })
                             }
                             placeholder="Description du livre"
-                            rows={2}
+                            rows={3}
                         />
                     </div>
 
@@ -227,7 +326,8 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                         </Button>
                         <Button
                             type="submit"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            disabled={!isFormValid}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Ajouter
                         </Button>
