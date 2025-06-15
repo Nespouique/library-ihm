@@ -5,7 +5,8 @@ const API_BASE_URL = '/api'; // Utilise le proxy Vite
 class ApiService {
     constructor(baseUrl = API_BASE_URL) {
         this.baseUrl = baseUrl;
-    }    async fetchJson(endpoint, options = {}) {
+    }
+    async fetchJson(endpoint, options = {}) {
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -13,11 +14,13 @@ class ApiService {
             },
             ...options,
         });
-        
+
         if (!response.ok) {
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+            throw new Error(
+                `API Error: ${response.status} ${response.statusText}`
+            );
         }
-        
+
         return response.json();
     }
 

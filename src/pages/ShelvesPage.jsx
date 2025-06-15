@@ -21,7 +21,7 @@ const ShelvesPage = () => {
     const loadBooks = async () => {
         try {
             const response = await booksService.getBooks(1);
-            const transformedBooks = response.data.map(book => ({
+            const transformedBooks = response.data.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: `${book.author.firstName} ${book.author.lastName}`,
@@ -47,23 +47,27 @@ const ShelvesPage = () => {
         try {
             setLoading(true);
             setError(null);
-            
+
             const response = await shelvesService.getShelves(1);
-            
+
             // Transformer les données API vers le format attendu par l'interface
-            const transformedShelves = response.data.map(shelf => {
+            const transformedShelves = response.data.map((shelf) => {
                 // Calculer le nombre de livres pour cette étagère
-                const shelfBookCount = booksData.filter(book => book.shelf === shelf.id).length;
-                
+                const shelfBookCount = booksData.filter(
+                    (book) => book.shelf === shelf.id
+                ).length;
+
                 return {
                     id: shelf.id,
                     name: shelf.name || `Étagère ${shelf.id.substring(0, 8)}`, // Utiliser le nom de l'API ou fallback
                     bookCount: shelfBookCount,
                 };
             });
-            
+
             // Ajouter une étagère "Non classé" pour les livres sans étagère
-            const unclassifiedBookCount = booksData.filter(book => !book.shelf).length;
+            const unclassifiedBookCount = booksData.filter(
+                (book) => !book.shelf
+            ).length;
             if (unclassifiedBookCount > 0) {
                 transformedShelves.push({
                     id: 'unclassified',
@@ -71,19 +75,21 @@ const ShelvesPage = () => {
                     bookCount: unclassifiedBookCount,
                 });
             }
-            
+
             setShelves(sortShelves(transformedShelves));
         } catch (err) {
             console.error('Erreur lors du chargement des étagères:', err);
-            setError('Impossible de charger les étagères. Vérifiez que l\'API est démarrée.');
-            
+            setError(
+                "Impossible de charger les étagères. Vérifiez que l'API est démarrée."
+            );
+
             // En cas d'erreur, utiliser des données de fallback
             setShelves([
                 {
                     id: '1',
                     name: 'Étagère de test',
                     bookCount: 0,
-                }
+                },
             ]);
         } finally {
             setLoading(false);
@@ -97,7 +103,7 @@ const ShelvesPage = () => {
             // Puis charger les étagères avec le bon compteur de livres
             await loadShelves(booksData);
         };
-        
+
         loadData();
     }, []);
 
@@ -107,18 +113,18 @@ const ShelvesPage = () => {
             // "Non classé" toujours en premier
             if (a.id === 'unclassified') return -1;
             if (b.id === 'unclassified') return 1;
-            
+
             // Pour les étagères numérotées, extraire le numéro pour un tri numérique
             const aMatch = a.name.match(/Étagère (\d+)/);
             const bMatch = b.name.match(/Étagère (\d+)/);
-            
+
             if (aMatch && bMatch) {
                 // Si les deux sont des étagères numérotées, trier par numéro
                 const aNum = parseInt(aMatch[1], 10);
                 const bNum = parseInt(bMatch[1], 10);
                 return aNum - bNum;
             }
-            
+
             // Sinon, tri alphabétique normal
             return a.name.localeCompare(b.name);
         });
@@ -129,23 +135,23 @@ const ShelvesPage = () => {
             // Appeler l'API pour créer l'étagère
             const response = await shelvesService.createShelf(newShelf);
             console.log('Étagère créée via API:', response);
-            
+
             // Ajouter l'étagère à la liste locale avec le bon ID et nom de l'API
             const shelfFromApi = {
                 id: response.id || response.data?.id, // L'API retourne l'ID de l'étagère créée
                 name: response.name || response.data?.name || newShelf.name, // Utiliser le nom confirmé par l'API
                 bookCount: 0, // Nouvelle étagère, pas de livres pour l'instant
             };
-            
+
             const updatedShelves = sortShelves([...shelves, shelfFromApi]);
             setShelves(updatedShelves);
-            
+
             toast({
                 title: 'Étagère ajoutée!',
                 description: `${newShelf.name} a été ajoutée avec succès.`,
             });
         } catch (error) {
-            console.error('Erreur lors de la création de l\'étagère:', error);
+            console.error("Erreur lors de la création de l'étagère:", error);
             toast({
                 title: 'Erreur!',
                 description: `Impossible d'ajouter l'étagère: ${error.message}`,
@@ -162,7 +168,7 @@ const ShelvesPage = () => {
 
     const getShelfBooks = (shelf) => {
         let shelfBooks;
-        
+
         // Utiliser l'ID de l'étagère pour le matching exact
         if (shelf.id === 'unclassified') {
             // Cas spécial pour les livres non classés
@@ -170,7 +176,7 @@ const ShelvesPage = () => {
         } else {
             shelfBooks = books.filter((book) => book.shelf === shelf.id);
         }
-        
+
         // Trier les livres par ordre alphabétique (titre)
         return shelfBooks.sort((a, b) => a.title.localeCompare(b.title));
     };
@@ -193,17 +199,29 @@ const ShelvesPage = () => {
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Chargement des étagères...</p>
+                    <p className="text-muted-foreground">
+                        Chargement des étagères...
+                    </p>
                 </div>
             ) : error ? (
                 <div className="text-center py-12">
                     <div className="text-destructive mb-4">
-                        <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        <svg
+                            className="mx-auto h-12 w-12"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
                         </svg>
                     </div>
                     <p className="text-destructive mb-4">{error}</p>
-                    <button 
+                    <button
                         onClick={loadShelves}
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
@@ -211,7 +229,6 @@ const ShelvesPage = () => {
                     </button>
                 </div>
             ) : (
-
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredShelves.length > 0 ? (
                         filteredShelves.map((shelf, index) => (
@@ -245,7 +262,7 @@ const ShelvesPage = () => {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-medium text-foreground mb-2">
-                            Aucune étagère trouvée
+                                Aucune étagère trouvée
                             </h3>
                             <p className="text-muted-foreground">
                                 {searchTerm

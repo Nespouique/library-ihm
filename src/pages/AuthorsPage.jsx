@@ -26,14 +26,16 @@ const AuthorsPage = () => {
         try {
             setLoading(true);
             setError(null);
-            
+
             const response = await authorsService.getAuthors(1);
-            
+
             // Transformer les données API vers le format attendu par l'interface
-            const transformedAuthors = response.data.map(author => {
+            const transformedAuthors = response.data.map((author) => {
                 // Calculer le nombre de livres pour cet auteur
-                const authorBookCount = booksData.filter(book => book.authorId === author.id).length;
-                
+                const authorBookCount = booksData.filter(
+                    (book) => book.authorId === author.id
+                ).length;
+
                 return {
                     id: author.id,
                     firstName: author.firstName,
@@ -43,17 +45,25 @@ const AuthorsPage = () => {
                     deathDate: null, // Pas dans l'API pour le moment
                 };
             });
-            
-            setAuthors(transformedAuthors.sort((a, b) => {
-                // Normaliser les noms pour un tri alphabétique correct
-                const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
-                const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
-                return nameA.localeCompare(nameB);
-            }));
+
+            setAuthors(
+                transformedAuthors.sort((a, b) => {
+                    // Normaliser les noms pour un tri alphabétique correct
+                    const nameA = `${a.lastName} ${a.firstName}`
+                        .toLowerCase()
+                        .trim();
+                    const nameB = `${b.lastName} ${b.firstName}`
+                        .toLowerCase()
+                        .trim();
+                    return nameA.localeCompare(nameB);
+                })
+            );
         } catch (err) {
             console.error('Erreur lors du chargement des auteurs:', err);
-            setError('Impossible de charger les auteurs. Vérifiez que l\'API est démarrée.');
-            
+            setError(
+                "Impossible de charger les auteurs. Vérifiez que l'API est démarrée."
+            );
+
             // En cas d'erreur, utiliser des données de fallback
             setAuthors([
                 {
@@ -63,7 +73,7 @@ const AuthorsPage = () => {
                     bookCount: 0,
                     birthDate: null,
                     deathDate: null,
-                }
+                },
             ]);
         } finally {
             setLoading(false);
@@ -75,7 +85,7 @@ const AuthorsPage = () => {
         try {
             const response = await booksService.getBooks(1);
             // Transformer les données API vers le format attendu par l'interface
-            const transformedBooks = response.data.map(book => ({
+            const transformedBooks = response.data.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: `${book.author.firstName} ${book.author.lastName}`,
@@ -105,7 +115,7 @@ const AuthorsPage = () => {
             // Puis charger les auteurs avec le bon compteur de livres
             await loadAuthors(booksData);
         };
-        
+
         loadData();
     }, []);
 
@@ -115,7 +125,7 @@ const AuthorsPage = () => {
         return firstName
             .toLowerCase()
             .split(/(\s+|-)/) // Diviser sur espaces ET traits d'union
-            .map(part => {
+            .map((part) => {
                 // Si c'est un séparateur (espace ou trait d'union), le retourner tel quel
                 if (/^\s+$/.test(part) || part === '-') return part;
                 // Sinon, capitaliser la première lettre
@@ -139,30 +149,35 @@ const AuthorsPage = () => {
             };
 
             // Appeler l'API pour créer l'auteur
-            const response = await authorsService.createAuthor(normalizedAuthor);
+            const response =
+                await authorsService.createAuthor(normalizedAuthor);
             console.log('Auteur créé via API:', response);
-            
+
             // Ajouter l'auteur à la liste locale avec le bon ID de l'API et les noms normalisés
             const authorFromApi = {
                 id: response.id || response.data?.id, // L'API retourne l'ID de l'auteur créé
                 firstName: normalizedAuthor.firstName, // Utiliser le prénom normalisé
-                lastName: normalizedAuthor.lastName,   // Utiliser le nom normalisé
+                lastName: normalizedAuthor.lastName, // Utiliser le nom normalisé
                 bookCount: 0, // Nouvel auteur, pas de livres pour l'instant
             };
-            
+
             const updatedAuthors = [...authors, authorFromApi].sort((a, b) => {
-                const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
-                const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
+                const nameA = `${a.lastName} ${a.firstName}`
+                    .toLowerCase()
+                    .trim();
+                const nameB = `${b.lastName} ${b.firstName}`
+                    .toLowerCase()
+                    .trim();
                 return nameA.localeCompare(nameB);
             });
             setAuthors(updatedAuthors);
-            
+
             toast({
                 title: 'Auteur ajouté!',
                 description: `${normalizedAuthor.firstName} ${normalizedAuthor.lastName} a été ajouté avec succès.`,
             });
         } catch (error) {
-            console.error('Erreur lors de la création de l\'auteur:', error);
+            console.error("Erreur lors de la création de l'auteur:", error);
             toast({
                 title: 'Erreur!',
                 description: `Impossible d'ajouter l'auteur: ${error.message}`,
@@ -247,22 +262,34 @@ const AuthorsPage = () => {
                 onChange={setSearchTerm}
             />
             <AlphabeticalScroller onLetterClick={handleLetterScroll} />
-            
+
             {/* Indicateur de chargement */}
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Chargement des auteurs...</p>
+                    <p className="text-muted-foreground">
+                        Chargement des auteurs...
+                    </p>
                 </div>
             ) : error ? (
                 <div className="text-center py-12">
                     <div className="text-destructive mb-4">
-                        <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        <svg
+                            className="mx-auto h-12 w-12"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
                         </svg>
                     </div>
                     <p className="text-destructive mb-4">{error}</p>
-                    <button 
+                    <button
                         onClick={loadAuthors}
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
@@ -275,7 +302,9 @@ const AuthorsPage = () => {
                         filteredAuthors.map((author, index) => (
                             <div
                                 key={author.id}
-                                ref={(el) => (authorRefs.current[author.id] = el)}
+                                ref={(el) =>
+                                    (authorRefs.current[author.id] = el)
+                                }
                                 className="h-full"
                             >
                                 <AuthorCard
@@ -307,7 +336,7 @@ const AuthorsPage = () => {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-medium text-foreground mb-2">
-                            Aucun auteur trouvé
+                                Aucun auteur trouvé
                             </h3>
                             <p className="text-muted-foreground">
                                 {searchTerm
@@ -318,7 +347,7 @@ const AuthorsPage = () => {
                     )}
                 </div>
             )}
-            
+
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
             <AddAuthorDialog
                 open={isAddDialogOpen}

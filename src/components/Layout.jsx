@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Book, Users, Bookmark } from 'lucide-react';
+import { Book, Users, SquareLibrary } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import KubeIcon from './KubeIcon';
 
@@ -8,7 +8,7 @@ const Layout = () => {
     const navItems = [
         { to: '/', icon: Book, label: 'Livres' },
         { to: '/auteurs', icon: Users, label: 'Auteurs' },
-        { to: '/etageres', icon: Bookmark, label: 'Étagères' },
+        { to: '/etageres', icon: SquareLibrary, label: 'Étagères' },
     ];
 
     return (

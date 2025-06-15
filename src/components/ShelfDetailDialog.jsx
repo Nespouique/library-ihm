@@ -8,7 +8,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { BookOpen, List } from 'lucide-react';
+import { BookOpen, List, Siren } from 'lucide-react';
 
 const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
     if (!shelf) return null;
@@ -57,6 +57,16 @@ const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
                         onClick={() => onOpenChange(false)}
                     >
                         Fermer
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            // TODO: Implémenter la fonctionnalité de repérage d'étagère
+                            console.log("Repérer l'étagère:", shelf.name);
+                        }}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                        <Siren className="h-4 w-4 mr-2" />
+                        Repérer l'étagère
                     </Button>
                 </DialogFooter>
             </DialogContent>

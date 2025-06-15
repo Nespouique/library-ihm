@@ -26,11 +26,11 @@ const BooksPage = ({ initialSearchTerm }) => {
         try {
             setLoading(true);
             setError(null);
-            
+
             const response = await booksService.getBooks(1);
-            
+
             // Transformer les données API vers le format attendu par l'interface
-            const transformedBooks = response.data.map(book => ({
+            const transformedBooks = response.data.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: `${book.author.firstName} ${book.author.lastName}`,
@@ -42,12 +42,14 @@ const BooksPage = ({ initialSearchTerm }) => {
                 status: 'unread', // Par défaut, on peut ajouter cette logique plus tard
                 pageCount: Math.floor(Math.random() * 500) + 50, // Temporaire, pas dans l'API
             }));
-            
+
             setBooks(transformedBooks);
         } catch (err) {
             console.error('Erreur lors du chargement des livres:', err);
-            setError('Impossible de charger les livres. Vérifiez que l\'API est démarrée.');
-            
+            setError(
+                "Impossible de charger les livres. Vérifiez que l'API est démarrée."
+            );
+
             // En cas d'erreur, utiliser des données de fallback
             setBooks([
                 {
@@ -55,13 +57,14 @@ const BooksPage = ({ initialSearchTerm }) => {
                     title: 'Exemple de livre',
                     author: 'Auteur Test',
                     isbn: '978-2-07-040850-1',
-                    description: 'Livre d\'exemple en attendant la connexion à l\'API.',
+                    description:
+                        "Livre d'exemple en attendant la connexion à l'API.",
                     shelf: 'Fiction',
                     publicationDate: '2023-01-01',
                     coverUrl: '',
                     status: 'unread',
                     pageCount: 200,
-                }
+                },
             ]);
         } finally {
             setLoading(false);
@@ -87,7 +90,8 @@ const BooksPage = ({ initialSearchTerm }) => {
                 title: newBook.title,
                 author: {
                     firstName: newBook.author.split(' ')[0] || '', // Première partie du nom
-                    lastName: newBook.author.split(' ').slice(1).join(' ') || '', // Reste du nom
+                    lastName:
+                        newBook.author.split(' ').slice(1).join(' ') || '', // Reste du nom
                 },
                 isbn: newBook.isbn,
                 description: newBook.description,
@@ -95,11 +99,11 @@ const BooksPage = ({ initialSearchTerm }) => {
                 jacket: newBook.coverUrl,
                 shelf: newBook.shelf !== 'Non classé' ? newBook.shelf : null,
             };
-            
+
             // Appeler l'API pour créer le livre
             const response = await booksService.createBook(bookDataForApi);
             console.log('Livre créé via API:', response);
-            
+
             // Ajouter le livre à la liste locale avec le bon ID de l'API
             const bookFromApi = {
                 id: response.id || response.data?.id,
@@ -113,12 +117,12 @@ const BooksPage = ({ initialSearchTerm }) => {
                 status: newBook.status || 'unread',
                 pageCount: newBook.pageCount || 0,
             };
-            
+
             const updatedBooks = [...books, bookFromApi].sort((a, b) =>
                 a.title.localeCompare(b.title)
             );
             setBooks(updatedBooks);
-            
+
             toast({
                 title: 'Livre ajouté!',
                 description: `${newBook.title} a été ajouté avec succès.`,
@@ -136,13 +140,13 @@ const BooksPage = ({ initialSearchTerm }) => {
     const handleUpdateBook = (updatedBook) => {
         // TODO: Appeler l'API pour mettre à jour le livre
         console.log('Mise à jour de livre via API à implémenter:', updatedBook);
-        
+
         // Pour l'instant, on met à jour localement
         const updatedBooks = books.map((book) =>
             book.id === updatedBook.id ? updatedBook : book
         );
         setBooks(updatedBooks);
-        
+
         toast({
             title: 'Livre mis à jour!',
             description: `${updatedBook.title} a été mis à jour (temporairement).`,
@@ -224,22 +228,34 @@ const BooksPage = ({ initialSearchTerm }) => {
                 }}
             />
             <AlphabeticalScroller onLetterClick={handleLetterScroll} />
-            
+
             {/* Indicateur de chargement */}
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Chargement des livres...</p>
+                    <p className="text-muted-foreground">
+                        Chargement des livres...
+                    </p>
                 </div>
             ) : error ? (
                 <div className="text-center py-12">
                     <div className="text-destructive mb-4">
-                        <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        <svg
+                            className="mx-auto h-12 w-12"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
                         </svg>
                     </div>
                     <p className="text-destructive mb-4">{error}</p>
-                    <button 
+                    <button
                         onClick={loadBooks}
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                     >
@@ -284,7 +300,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-medium text-foreground mb-2">
-                            Aucun livre trouvé
+                                Aucun livre trouvé
                             </h3>
                             <p className="text-muted-foreground">
                                 {searchTerm
