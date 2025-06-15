@@ -90,7 +90,7 @@
 
 @layer components {
     .flat-nav {
-        @apply bg-background/95 backdrop-blur-md border-b border-border shadow-md sticky top-0 z-40;
+        @apply bg-background/95 backdrop-blur-md border-b border-border shadow-md fixed top-0 left-0 right-0 z-40;
     }
 
     .glass-effect {
