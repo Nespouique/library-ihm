@@ -23,9 +23,10 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         publicationDate: null, // Changed to null for Date object
         shelfId: '', // Changé pour stocker l'ID
         description: '',
-    }); // États pour les autocompletes
+    });    // États pour les autocompletes
     const [authors, setAuthors] = useState([]);
     const [shelves, setShelves] = useState([]);
+    const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
 
     // Options formatées pour les Combobox
     const authorOptions = useMemo(
@@ -46,9 +47,29 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                 id: shelf.id,
             })),
         [shelves]
-    ); // Validation des champs obligatoires
+    );    // Validation des champs obligatoires
     const isFormValid =
-        formData.isbn.trim() && formData.title.trim() && formData.authorId;
+        formData.isbn.trim() && 
+        formData.title.trim() && 
+        formData.authorId &&
+        isDateValid; // Inclure la validation de la date
+
+    // Reset des champs quand la popup se ferme
+    useEffect(() => {
+        if (!open) {
+            // Reset tous les champs quand la popup se ferme
+            setFormData({
+                isbn: '',
+                title: '',
+                authorId: '',
+                publicationDate: null,
+                shelfId: '',
+                description: '',
+            });
+            // Reset aussi la validation de la date
+            setIsDateValid(true);
+        }
+    }, [open]);
 
     // Charger les auteurs et étagères
     useEffect(() => {
@@ -98,16 +119,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         };
 
         onAddBook(submissionData);
-        setFormData({
-            isbn: '',
-            title: '',
-            authorId: '', // Changé pour correspondre au nouveau schema
-            publicationDate: null, // Changed to null for Date object
-            shelfId: '', // Changé pour correspondre au nouveau schema
-            description: '',
-        });
-
-        onOpenChange(false);
+        onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
 
     const handleScanBarcode = () => {
@@ -197,6 +209,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                                         publicationDate: date,
                                     })
                                 }
+                                onValidationChange={setIsDateValid}
                                 id="publicationDate"
                             />
                         </div>

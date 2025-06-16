@@ -54,34 +54,70 @@ function parseDateFromString(value) {
     return null;
 }
 
-export function DatePicker() {
+export function DatePicker({ 
+    date, 
+    setDate, 
+    placeholder = 'jj/mm/yyyy', 
+    label = null, 
+    id = 'date', 
+    disabled = false,
+    onValidationChange = null // Callback pour signaler si la date est valide
+}) {
     const [open, setOpen] = React.useState(false);
-    const [date, setDate] = React.useState(null);
     const [month, setMonth] = React.useState(date || new Date());
     const [value, setValue] = React.useState(formatDate(date));
+    const [hasError, setHasError] = React.useState(false);
+
+    // Fonction pour valider l'input
+    const validateInput = (inputValue) => {
+        if (!inputValue) {
+            // Champ vide = pas d'erreur
+            setHasError(false);
+            onValidationChange?.(true);
+            return true;
+        }
+        
+        const parsedDate = parseDateFromString(inputValue);
+        const isValid = parsedDate !== null;
+        setHasError(!isValid);
+        onValidationChange?.(isValid);
+        return isValid;
+    };
 
     return (
         <div className="flex flex-col space-y-1">
-            <Label htmlFor="date"></Label>
+            {label && <Label htmlFor={id}>{label}</Label>}
             <div className="relative flex gap-2">
                 <Input
-                    id="date"
+                    id={id}
                     type="text"
                     value={value}
-                    placeholder="jj/mm/yyyy"
-                    className="bg-background pr-10"
+                    placeholder={placeholder}
+                    className={`bg-background pr-10 ${
+                        hasError 
+                            ? 'border-destructive focus:border-destructive focus:ring-destructive' 
+                            : ''
+                    }`}
                     maxLength={10}
+                    disabled={disabled}
                     onChange={(e) => {
                         const inputValue = e.target.value;
                         setValue(inputValue);
                         
                         const parsedDate = parseDateFromString(inputValue);
                         if (parsedDate) {
-                            setDate(parsedDate);
+                            setDate?.(parsedDate);
                             setMonth(parsedDate);
                         } else if (inputValue === '') {
-                            setDate(null);
+                            setDate?.(null);
                         }
+                        
+                        // Valider l'input
+                        validateInput(inputValue);
+                    }}
+                    onBlur={(e) => {
+                        // Re-valider au blur pour s'assurer que l'état d'erreur est correct
+                        validateInput(e.target.value);
                     }}
                     onKeyDown={(e) => {
                         if (e.key === 'ArrowDown') {
@@ -89,13 +125,14 @@ export function DatePicker() {
                             setOpen(true);
                         }
                     }}
-                />{' '}
+                />
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                         <Button
                             id="date-picker"
                             variant="ghost"
                             className="absolute top-1/2 right-2 size-6 -translate-y-1/2 text-muted-foreground"
+                            disabled={disabled}
                             aria-label="Sélectionner une date"
                         >
                             <CalendarIcon className="size-3.5 opacity-50" />
@@ -114,10 +151,10 @@ export function DatePicker() {
                             month={month}
                             onMonthChange={setMonth}
                             onSelect={(selectedDate) => {
-                                setDate(selectedDate);
-                                setValue(
-                                    formatDate(selectedDate)
-                                );
+                                setDate?.(selectedDate);
+                                setValue(formatDate(selectedDate));
+                                setHasError(false); // Reset l'erreur quand on sélectionne du calendrier
+                                onValidationChange?.(true);
                                 setOpen(false);
                             }}
                         />
