@@ -19,9 +19,9 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const [formData, setFormData] = useState({
         isbn: '',
         title: '',
-        author: '',
+        authorId: '', // Changé pour stocker l'ID
         publicationDate: null, // Changed to null for Date object
-        shelf: '',
+        shelfId: '', // Changé pour stocker l'ID
         description: '',
     }); // États pour les autocompletes
     const [authors, setAuthors] = useState([]);
@@ -31,7 +31,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const authorOptions = useMemo(
         () =>
             authors.map((author) => ({
-                value: `${author.firstName} ${author.lastName}`,
+                value: author.id.toString(), // Utiliser l'ID comme valeur
                 label: `${author.firstName} ${author.lastName}`,
                 id: author.id,
             })),
@@ -41,14 +41,14 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const shelfOptions = useMemo(
         () =>
             shelves.map((shelf) => ({
-                value: shelf.name,
+                value: shelf.id.toString(), // Utiliser l'ID comme valeur
                 label: shelf.name,
                 id: shelf.id,
             })),
         [shelves]
     ); // Validation des champs obligatoires
     const isFormValid =
-        formData.isbn.trim() && formData.title.trim() && formData.author.trim();
+        formData.isbn.trim() && formData.title.trim() && formData.authorId;
 
     // Charger les auteurs et étagères
     useEffect(() => {
@@ -82,31 +82,32 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
             return;
         }
 
-        // Format the date for submission
+        // Format the date for submission (évite le décalage de fuseau horaire)
+        const formatDateForSubmission = (date) => {
+            if (!date) return '';
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         const submissionData = {
             ...formData,
             id: Date.now().toString(),
-            publicationDate: formData.publicationDate
-                ? formData.publicationDate.toISOString().split('T')[0]
-                : '',
+            publicationDate: formatDateForSubmission(formData.publicationDate),
         };
 
         onAddBook(submissionData);
         setFormData({
             isbn: '',
             title: '',
-            author: '',
+            authorId: '', // Changé pour correspondre au nouveau schema
             publicationDate: null, // Changed to null for Date object
-            shelf: '',
+            shelfId: '', // Changé pour correspondre au nouveau schema
             description: '',
         });
 
         onOpenChange(false);
-
-        toast({
-            title: 'Livre ajouté !',
-            description: 'Le livre a été ajouté avec succès à la bibliothèque.',
-        });
     };
 
     const handleScanBarcode = () => {
@@ -173,9 +174,9 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                         <Label htmlFor="author">Auteur *</Label>
                         <Combobox
                             options={authorOptions}
-                            value={formData.author}
+                            value={formData.authorId}
                             onValueChange={(value) =>
-                                setFormData({ ...formData, author: value })
+                                setFormData({ ...formData, authorId: value })
                             }
                             placeholder="Choisir un auteur..."
                             searchPlaceholder="Rechercher un auteur..."
@@ -204,9 +205,9 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                             <Label htmlFor="shelf">Étagère</Label>
                             <Combobox
                                 options={shelfOptions}
-                                value={formData.shelf}
+                                value={formData.shelfId}
                                 onValueChange={(value) =>
-                                    setFormData({ ...formData, shelf: value })
+                                    setFormData({ ...formData, shelfId: value })
                                 }
                                 placeholder="Choisir une étagère..."
                                 searchPlaceholder="Rechercher une étagère..."

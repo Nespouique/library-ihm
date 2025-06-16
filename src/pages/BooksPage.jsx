@@ -95,43 +95,28 @@ const BooksPage = ({ initialSearchTerm }) => {
 
     const handleAddBook = async (newBook) => {
         try {
-            // Préparer les données pour l'API (format attendu par l'API)
+            // Déboguer les données reçues
+            console.log('Données reçues du formulaire:', newBook);
+
+            // Préparer les données pour l'API avec les IDs
             const bookDataForApi = {
                 title: newBook.title,
-                author: {
-                    firstName: newBook.author.split(' ')[0] || '', // Première partie du nom
-                    lastName:
-                        newBook.author.split(' ').slice(1).join(' ') || '', // Reste du nom
-                },
+                author: newBook.authorId, // API attend 'author' avec l'ID
                 isbn: newBook.isbn,
                 description: newBook.description,
                 date: newBook.publicationDate,
-                jacket: newBook.coverUrl,
-                shelf: newBook.shelf !== 'Non classé' ? newBook.shelf : null,
+                jacket: newBook.coverUrl || null, // Utiliser null au lieu d'undefined
+                shelf: newBook.shelfId || null, // API attend 'shelf' avec l'ID ou null
             };
+
+            console.log("Données envoyées à l'API:", bookDataForApi);
 
             // Appeler l'API pour créer le livre
             const response = await booksService.createBook(bookDataForApi);
             console.log('Livre créé via API:', response);
 
-            // Ajouter le livre à la liste locale avec le bon ID de l'API
-            const bookFromApi = {
-                id: response.id || response.data?.id,
-                title: newBook.title,
-                author: newBook.author,
-                isbn: newBook.isbn,
-                description: newBook.description,
-                shelf: newBook.shelf,
-                publicationDate: newBook.publicationDate,
-                coverUrl: newBook.coverUrl,
-                status: newBook.status || 'unread',
-                pageCount: newBook.pageCount || 0,
-            };
-
-            const updatedBooks = [...books, bookFromApi].sort((a, b) =>
-                a.title.localeCompare(b.title)
-            );
-            setBooks(updatedBooks);
+            // Recharger la liste des livres pour avoir les données complètes
+            await loadBooks();
 
             toast({
                 title: 'Livre ajouté!',
