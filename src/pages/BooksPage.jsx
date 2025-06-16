@@ -96,7 +96,7 @@ const BooksPage = ({ initialSearchTerm }) => {
     const handleAddBook = async (newBook) => {
         try {
             // Déboguer les données reçues
-            console.log('Données reçues du formulaire:', newBook);
+            //console.log('Données reçues du formulaire:', newBook);
 
             // Préparer les données pour l'API avec les IDs
             const bookDataForApi = {
@@ -109,24 +109,25 @@ const BooksPage = ({ initialSearchTerm }) => {
                 shelf: newBook.shelfId || null, // API attend 'shelf' avec l'ID ou null
             };
 
-            console.log("Données envoyées à l'API:", bookDataForApi);
+            //console.log("Données envoyées à l'API:", bookDataForApi);
 
             // Appeler l'API pour créer le livre
             const response = await booksService.createBook(bookDataForApi);
-            console.log('Livre créé via API:', response);
+            //console.log('Livre créé via API:', response);
 
             // Recharger la liste des livres pour avoir les données complètes
             await loadBooks();
 
             toast({
-                title: 'Livre ajouté!',
-                description: `${newBook.title} a été ajouté avec succès.`,
+                title: 'Succès - Livre ajouté !',
+                description: `"${newBook.title}" a été ajouté avec succès.`,
+                variant: 'success',
             });
         } catch (error) {
             console.error('Erreur lors de la création du livre:', error);
             toast({
-                title: 'Erreur!',
-                description: `Impossible d'ajouter le livre: ${error.message}`,
+                title: `Erreur - Impossible d'ajouter le livre`,
+                description: `${error.message}`,
                 variant: 'destructive',
             });
         }

@@ -15,13 +15,22 @@ class ApiService {
             ...options,
         });
 
+        let data = null;
+        try {
+            // On tente de lire le body, même en cas d'erreur
+            data = await response.json();
+        } catch (e) {
+            // body vide ou non json
+            data = null;
+        }
+
         if (!response.ok) {
             throw new Error(
-                `API Error: ${response.status} ${response.statusText}`
+                `API Error: ${response.status} ${response.statusText} ${data?.message ? ' - ' + data.message : ''}`
             );
         }
 
-        return response.json();
+        return data;
     }
 
     async postJson(endpoint, data) {

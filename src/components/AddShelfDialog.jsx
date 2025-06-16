@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -15,34 +15,29 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
         name: '',
     });
 
+    // Validation des champs obligatoires
+    const isFormValid = formData.name.trim();
+
+    // Reset des champs quand la popup se ferme
+    useEffect(() => {
+        if (!open) {
+            setFormData({
+                name: '',
+            });
+        }
+    }, [open]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.name) {
-            toast({
-                title: 'Erreur',
-                description: "Veuillez remplir le nom de l'étagère.",
-                variant: 'destructive',
-            });
-            return;
+        if (!isFormValid) {
+            return; // Ne devrait pas arriver car le bouton est désactivé
         }
 
         onAddShelf({
             ...formData,
-            id: Date.now().toString(),
-            bookCount: 0,
         });
 
-        setFormData({
-            name: '',
-        });
-
-        onOpenChange(false);
-
-        toast({
-            title: 'Étagère ajoutée !',
-            description:
-                "L'étagère a été ajoutée avec succès à la bibliothèque.",
-        });
+        onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
 
     return (
@@ -81,7 +76,8 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
                         </Button>
                         <Button
                             type="submit"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            disabled={!isFormValid}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Ajouter
                         </Button>

@@ -147,14 +147,15 @@ const ShelvesPage = () => {
             setShelves(updatedShelves);
 
             toast({
-                title: 'Étagère ajoutée!',
+                title: 'Succès - Étagère ajoutée !',
                 description: `${newShelf.name} a été ajoutée avec succès.`,
+                variant: 'success',
             });
         } catch (error) {
-            console.error("Erreur lors de la création de l'étagère:", error);
+            console.error("Erreur lors de la création de l'étagère : ", error);
             toast({
-                title: 'Erreur!',
-                description: `Impossible d'ajouter l'étagère: ${error.message}`,
+                title: `Erreur - Impossible d'ajouter l'étagère`,
+                description: `${error.message}`,
                 variant: 'destructive',
             });
         }

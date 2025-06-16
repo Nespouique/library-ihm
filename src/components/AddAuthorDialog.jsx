@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -16,34 +16,30 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
         lastName: '',
     });
 
+    // Validation des champs obligatoires
+    const isFormValid = formData.firstName.trim() && formData.lastName.trim();
+
+    // Reset des champs quand la popup se ferme
+    useEffect(() => {
+        if (!open) {
+            setFormData({
+                firstName: '',
+                lastName: '',
+            });
+        }
+    }, [open]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.firstName || !formData.lastName) {
-            toast({
-                title: 'Erreur',
-                description: 'Veuillez remplir le prénom et le nom.',
-                variant: 'destructive',
-            });
-            return;
+        if (!isFormValid) {
+            return; // Ne devrait pas arriver car le bouton est désactivé
         }
 
         onAddAuthor({
             ...formData,
-            id: Date.now().toString(),
-            bookCount: 0,
         });
 
-        setFormData({
-            firstName: '',
-            lastName: '',
-        });
-
-        onOpenChange(false);
-
-        toast({
-            title: 'Auteur ajouté !',
-            description: "L'auteur a été ajouté avec succès à la bibliothèque.",
-        });
+        onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
 
     return (
@@ -99,7 +95,8 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
                         </Button>
                         <Button
                             type="submit"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            disabled={!isFormValid}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Ajouter
                         </Button>

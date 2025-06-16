@@ -173,14 +173,15 @@ const AuthorsPage = () => {
             setAuthors(updatedAuthors);
 
             toast({
-                title: 'Auteur ajouté!',
-                description: `${normalizedAuthor.firstName} ${normalizedAuthor.lastName} a été ajouté avec succès.`,
+                title: 'Succès - Auteur ajouté !',
+                description: `${normalizedAuthor.firstName} ${normalizedAuthor.lastName} a été ajouté(e) avec succès.`,
+                variant: 'success',
             });
         } catch (error) {
             console.error("Erreur lors de la création de l'auteur:", error);
             toast({
-                title: 'Erreur!',
-                description: `Impossible d'ajouter l'auteur: ${error.message}`,
+                title: `Erreur - Impossible d'ajouter l'auteur`,
+                description: `${error.message}`,
                 variant: 'destructive',
             });
         }
