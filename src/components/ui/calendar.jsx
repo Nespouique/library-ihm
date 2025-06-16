@@ -12,7 +12,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 
 function Calendar({
     className,
-    classNames, 
+    classNames,
     showOutsideDays = false,
     fixedWeeks = true,
     captionLayout = 'label',

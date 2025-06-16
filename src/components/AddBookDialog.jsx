@@ -23,7 +23,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         publicationDate: null, // Changed to null for Date object
         shelfId: '', // Changé pour stocker l'ID
         description: '',
-    });    // États pour les autocompletes
+    }); // États pour les autocompletes
     const [authors, setAuthors] = useState([]);
     const [shelves, setShelves] = useState([]);
     const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
@@ -47,10 +47,10 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                 id: shelf.id,
             })),
         [shelves]
-    );    // Validation des champs obligatoires
+    ); // Validation des champs obligatoires
     const isFormValid =
-        formData.isbn.trim() && 
-        formData.title.trim() && 
+        formData.isbn.trim() &&
+        formData.title.trim() &&
         formData.authorId &&
         isDateValid; // Inclure la validation de la date
 

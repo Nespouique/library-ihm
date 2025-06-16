@@ -33,14 +33,18 @@ function isValidDate(date) {
 
 function parseDateFromString(value) {
     if (!value) return null;
-    
+
     // Essayer d'abord le format dd/mm/yyyy
     const ddmmyyyyMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (ddmmyyyyMatch) {
         const [, day, month, year] = ddmmyyyyMatch;
         // Créer la date avec le format correct (year, month-1, day)
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        
+        const date = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+        );
+
         // Vérifier que la date est valide (gère les cas comme 31/02/2023)
         if (
             date.getDate() === parseInt(day) &&
@@ -50,18 +54,18 @@ function parseDateFromString(value) {
             return date;
         }
     }
-    
+
     return null;
 }
 
-export function DatePicker({ 
-    date, 
-    setDate, 
-    placeholder = 'jj/mm/yyyy', 
-    label = null, 
-    id = 'date', 
+export function DatePicker({
+    date,
+    setDate,
+    placeholder = 'jj/mm/yyyy',
+    label = null,
+    id = 'date',
     disabled = false,
-    onValidationChange = null // Callback pour signaler si la date est valide
+    onValidationChange = null, // Callback pour signaler si la date est valide
 }) {
     const [open, setOpen] = React.useState(false);
     const [month, setMonth] = React.useState(date || new Date());
@@ -76,7 +80,7 @@ export function DatePicker({
             onValidationChange?.(true);
             return true;
         }
-        
+
         const parsedDate = parseDateFromString(inputValue);
         const isValid = parsedDate !== null;
         setHasError(!isValid);
@@ -94,8 +98,8 @@ export function DatePicker({
                     value={value}
                     placeholder={placeholder}
                     className={`bg-background pr-10 ${
-                        hasError 
-                            ? 'border-destructive focus:border-destructive focus:ring-destructive' 
+                        hasError
+                            ? 'border-destructive focus:border-destructive focus:ring-destructive'
                             : ''
                     }`}
                     maxLength={10}
@@ -103,7 +107,7 @@ export function DatePicker({
                     onChange={(e) => {
                         const inputValue = e.target.value;
                         setValue(inputValue);
-                        
+
                         const parsedDate = parseDateFromString(inputValue);
                         if (parsedDate) {
                             setDate?.(parsedDate);
@@ -111,7 +115,7 @@ export function DatePicker({
                         } else if (inputValue === '') {
                             setDate?.(null);
                         }
-                        
+
                         // Valider l'input
                         validateInput(inputValue);
                     }}
