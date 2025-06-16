@@ -25,10 +25,33 @@ function formatDate(date) {
 }
 
 function isValidDate(date) {
-  if (!date) {
-    return false
-  }
-  return !isNaN(date.getTime())
+    if (!date) {
+        return false;
+    }
+    return !isNaN(date.getTime());
+}
+
+function parseDateFromString(value) {
+    if (!value) return null;
+    
+    // Essayer d'abord le format dd/mm/yyyy
+    const ddmmyyyyMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (ddmmyyyyMatch) {
+        const [, day, month, year] = ddmmyyyyMatch;
+        // Créer la date avec le format correct (year, month-1, day)
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        
+        // Vérifier que la date est valide (gère les cas comme 31/02/2023)
+        if (
+            date.getDate() === parseInt(day) &&
+            date.getMonth() === parseInt(month) - 1 &&
+            date.getFullYear() === parseInt(year)
+        ) {
+            return date;
+        }
+    }
+    
+    return null;
 }
 
 export function DatePicker() {
@@ -47,13 +70,17 @@ export function DatePicker() {
                     value={value}
                     placeholder="jj/mm/yyyy"
                     className="bg-background pr-10"
-                    maxLength={20}
+                    maxLength={10}
                     onChange={(e) => {
-                        const date = new Date(e.target.value)
-                        setValue(e.target.value)
-                        if (isValidDate(date)) {
-                        setDate(date)
-                        setMonth(date)
+                        const inputValue = e.target.value;
+                        setValue(inputValue);
+                        
+                        const parsedDate = parseDateFromString(inputValue);
+                        if (parsedDate) {
+                            setDate(parsedDate);
+                            setMonth(parsedDate);
+                        } else if (inputValue === '') {
+                            setDate(null);
                         }
                     }}
                     onKeyDown={(e) => {
