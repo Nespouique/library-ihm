@@ -89,7 +89,7 @@ export function useToast() {
 
             const timeout = setTimeout(() => {
                 toast.dismiss();
-            }, toast.duration || 30000); // Durée par défaut augmentée à 30 secondes
+            }, toast.duration || 5000);
 
             timeouts.push(timeout);
         });

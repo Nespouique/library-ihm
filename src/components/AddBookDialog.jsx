@@ -132,38 +132,40 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <div className="flex items-center justify-start space-x-3">
-                        <DialogTitle className="main-title-text">
-                            Ajouter un livre
-                        </DialogTitle>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={handleScanBarcode}
-                            className="rounded-full w-8 h-8"
-                        >
-                            <Camera className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <DialogTitle className="main-title-text">
+                        Ajouter un livre
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    {/* 1. ISBN - obligatoire, toute la largeur */}
+                    {/* 1. ISBN - obligatoire, toute la largeur avec bouton scan intégré */}
                     <div className="space-y-1">
                         <Label htmlFor="isbn">ISBN *</Label>
-                        <Input
-                            id="isbn"
-                            value={formData.isbn}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    isbn: e.target.value,
-                                })
-                            }
-                            placeholder="ISBN du livre"
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="isbn"
+                                value={formData.isbn}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        isbn: e.target.value,
+                                    })
+                                }
+                                placeholder="ISBN du livre"
+                                className="pr-10"
+                                required
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleScanBarcode}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
+                                aria-label="Scanner le code-barres"
+                            >
+                                <Camera className="h-4 w-4 opacity-50" />
+                            </Button>
+                        </div>
                     </div>
                     {/* 2. Titre - obligatoire, toute la largeur */}
                     <div className="space-y-1">
