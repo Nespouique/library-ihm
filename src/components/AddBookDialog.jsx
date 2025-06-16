@@ -197,7 +197,6 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                                         publicationDate: date,
                                     })
                                 }
-                                placeholder="14/12/1994"
                                 id="publicationDate"
                             />
                         </div>
