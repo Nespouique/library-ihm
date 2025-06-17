@@ -105,7 +105,7 @@ const BookCard = ({ book, index, onClick }) => {
                 open={showDeleteConfirm}
                 onOpenChange={setShowDeleteConfirm}
             >
-                <DialogContent className="sm:max-w-sm">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader className="text-center">
                         <DialogTitle className="main-title-text text-center pb-3 font-bold">
                             Êtes-vous sûr ?
