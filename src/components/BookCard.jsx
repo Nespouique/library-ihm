@@ -1,21 +1,56 @@
-import React from 'react';
-import { Book, User, Hash } from 'lucide-react';
+import React, { useState } from 'react';
+import { Book, User, Hash, Edit, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-// Helper function to get jacket image URL from API
-const getImageUrl = (book, size = 'small') => {
-    if (!book?.id || !book?.jacket) return '/placeholder-book.svg';
-    return `/api/books/${book.id}/jacket/${size}`;
-};
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from './ui/dialog';
+import { Button } from './ui/button';
 
 const BookCard = ({ book, index, onClick }) => {
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    const handleDeleteClick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = (e) => {
+        e?.stopPropagation();
+        e?.preventDefault();
+        // TODO: Implement actual delete functionality
+        console.log('Deleting book:', book.id);
+        setShowDeleteConfirm(false);
+    };
+
+    const handleCancelDelete = (e) => {
+        e?.stopPropagation();
+        e?.preventDefault();
+        setShowDeleteConfirm(false);
+    };
+
+    const handleEditClick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // TODO: Implement edit functionality
+        console.log('Edit book:', book.id);
+    };
+
+    const isDialogOpen = showDeleteConfirm;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             className="book-card group"
-            onClick={onClick}
+            //onClick={onClick}
+            onClick={isDialogOpen ? undefined : onClick}
         >
             <div className="flex items-start space-x-4 flex-grow">
                 <div className="flex-shrink-0">
@@ -48,15 +83,67 @@ const BookCard = ({ book, index, onClick }) => {
                 </div>
             </div>
             {book.shelf && (
-                <div className="flex items-center text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
                     <span
                         className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground truncate-text"
                         title={book.shelf}
                     >
                         {book.shelf}
                     </span>
+                    <div className="flex items-center gap-1">
+                        <button
+                            className="p-1.5 rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
+                            onClick={handleEditClick}
+                            title="Modifier le livre"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                            className="p-1.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors group/delete"
+                            onClick={handleDeleteClick}
+                            title="Supprimer le livre"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             )}
+
+            {/* Dialog de confirmation de suppression */}
+            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <DialogContent 
+                    className="sm:max-w-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }}
+                >
+                    <DialogHeader className="text-center">
+                        <DialogTitle className="main-title-text text-center pb-3 font-bold">
+                            Êtes-vous sûr ?
+                        </DialogTitle>
+                        <DialogDescription className="text-center">
+                            Vous êtes sur le point de supprimer <em>"{book.title}"</em>.
+                            <br />
+                            Cette action est irréversible.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={handleCancelDelete}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            variant="default"
+                            onClick={handleConfirmDelete}
+                        >
+                            Confirmer
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </motion.div>
     );
 };

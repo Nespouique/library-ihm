@@ -82,15 +82,6 @@ const ShelvesPage = () => {
             setError(
                 "Impossible de charger les étagères. Vérifiez que l'API est démarrée."
             );
-
-            // En cas d'erreur, utiliser des données de fallback
-            setShelves([
-                {
-                    id: '1',
-                    name: 'Étagère de test',
-                    bookCount: 0,
-                },
-            ]);
         } finally {
             setLoading(false);
         }

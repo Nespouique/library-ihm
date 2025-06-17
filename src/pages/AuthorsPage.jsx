@@ -63,18 +63,6 @@ const AuthorsPage = () => {
             setError(
                 "Impossible de charger les auteurs. Vérifiez que l'API est démarrée."
             );
-
-            // En cas d'erreur, utiliser des données de fallback
-            setAuthors([
-                {
-                    id: '1',
-                    firstName: 'Auteur',
-                    lastName: 'Test',
-                    bookCount: 0,
-                    birthDate: null,
-                    deathDate: null,
-                },
-            ]);
         } finally {
             setLoading(false);
         }

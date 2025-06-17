@@ -59,23 +59,6 @@ const BooksPage = ({ initialSearchTerm }) => {
             setError(
                 "Impossible de charger les livres. Vérifiez que l'API est démarrée."
             );
-
-            // En cas d'erreur, utiliser des données de fallback
-            setBooks([
-                {
-                    id: '1',
-                    title: 'Exemple de livre',
-                    author: 'Auteur Test',
-                    isbn: '978-2-07-040850-1',
-                    description:
-                        "Livre d'exemple en attendant la connexion à l'API.",
-                    shelf: 'Fiction',
-                    publicationDate: '2023-01-01',
-                    coverUrl: '',
-                    status: 'unread',
-                    pageCount: 200,
-                },
-            ]);
         } finally {
             setLoading(false);
         }
