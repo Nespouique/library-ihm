@@ -43,7 +43,7 @@ const AuthorCard = ({ author, index, onClick }) => {
                 className="author-card group"
             >
                 {/* Zone cliquable : contenu principal de l'auteur */}
-                <div 
+                <div
                     className="flex items-center space-x-4 flex-grow cursor-pointer"
                     onClick={onClick}
                 >
@@ -60,7 +60,8 @@ const AuthorCard = ({ author, index, onClick }) => {
                             {fullName}
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                            {author.bookCount || 0} livre(s) dans la bibliothèque
+                            {author.bookCount || 0} livre(s) dans la
+                            bibliothèque
                         </p>
                     </div>
                 </div>
@@ -88,29 +89,27 @@ const AuthorCard = ({ author, index, onClick }) => {
             </motion.div>
 
             {/* Dialog de confirmation de suppression */}
-            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+            <Dialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+            >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="text-center">
                         <DialogTitle className="main-title-text text-center pb-3 font-bold">
                             Êtes-vous sûr ?
                         </DialogTitle>
                         <DialogDescription className="text-center">
-                            Vous êtes sur le point de supprimer <em>"{fullName}"</em>.
+                            Vous êtes sur le point de supprimer{' '}
+                            <em>"{fullName}"</em>.
                             <br />
                             Cette action est irréversible.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={handleCancelDelete}
-                        >
+                    <DialogFooter className="sm:justify-center">
+                        <Button variant="outline" onClick={handleCancelDelete}>
                             Annuler
                         </Button>
-                        <Button
-                            variant="default"
-                            onClick={handleConfirmDelete}
-                        >
+                        <Button variant="default" onClick={handleConfirmDelete}>
                             Confirmer
                         </Button>
                     </DialogFooter>

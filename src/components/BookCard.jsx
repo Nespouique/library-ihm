@@ -117,7 +117,7 @@ const BookCard = ({ book, index, onClick }) => {
                             Cette action est irréversible.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
+                    <DialogFooter className="sm:justify-center">
                         <Button variant="outline" onClick={handleCancelDelete}>
                             Annuler
                         </Button>
