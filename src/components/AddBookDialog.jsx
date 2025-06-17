@@ -14,6 +14,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { Camera } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { authorsService, shelvesService } from '@/services/api';
+import BarcodeScanner from './BarcodeScanner';
 
 const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const [formData, setFormData] = useState({
@@ -23,10 +24,13 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         publicationDate: null, // Changed to null for Date object
         shelfId: '', // Changé pour stocker l'ID
         description: '',
-    }); // États pour les autocompletes
+    }); 
+    
+    // États pour les autocompletes
     const [authors, setAuthors] = useState([]);
     const [shelves, setShelves] = useState([]);
     const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
+    const [isScannerOpen, setIsScannerOpen] = useState(false); // État pour le scanner de code-barres
 
     // Options formatées pour les Combobox
     const authorOptions = useMemo(
@@ -123,8 +127,13 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     };
 
     const handleScanBarcode = () => {
-        toast({
-            title: "🚧 Cette fonctionnalité n'est pas encore implémentée—mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochaine requête ! 🚀",
+        setIsScannerOpen(true);
+    };
+
+    const handleBarcodeDetected = (isbn) => {
+        setFormData({
+            ...formData,
+            isbn: isbn,
         });
     };
 
@@ -263,6 +272,13 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                     </div>
                 </form>
             </DialogContent>
+
+            {/* Scanner de code-barres */}
+            <BarcodeScanner
+                open={isScannerOpen}
+                onOpenChange={setIsScannerOpen}
+                onBarcodeDetected={handleBarcodeDetected}
+            />
         </Dialog>
     );
 };
