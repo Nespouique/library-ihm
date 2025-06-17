@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
@@ -47,6 +48,9 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
                     <DialogTitle className="main-title-text">
                         Ajouter une étagère
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Créez une nouvelle étagère pour organiser vos livres.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-3">

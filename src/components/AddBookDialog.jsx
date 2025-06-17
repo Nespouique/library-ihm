@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
@@ -24,8 +25,8 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
         publicationDate: null, // Changed to null for Date object
         shelfId: '', // Changé pour stocker l'ID
         description: '',
-    }); 
-    
+    });
+
     // États pour les autocompletes
     const [authors, setAuthors] = useState([]);
     const [shelves, setShelves] = useState([]);
@@ -144,6 +145,10 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                     <DialogTitle className="main-title-text">
                         Ajouter un livre
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Remplissez les informations du livre à ajouter à votre
+                        bibliothèque.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4 pt-2">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
@@ -49,6 +50,9 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
                     <DialogTitle className="main-title-text">
                         Ajouter un auteur
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Ajoutez un nouvel auteur à votre bibliothèque.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-3">
