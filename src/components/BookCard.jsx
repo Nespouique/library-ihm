@@ -13,35 +13,24 @@ import { Button } from './ui/button';
 
 const BookCard = ({ book, index, onClick }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-    const handleDeleteClick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
+    const handleDeleteClick = () => {
         setShowDeleteConfirm(true);
     };
 
-    const handleConfirmDelete = (e) => {
-        e?.stopPropagation();
-        e?.preventDefault();
+    const handleConfirmDelete = () => {
         // TODO: Implement actual delete functionality
         console.log('Deleting book:', book.id);
         setShowDeleteConfirm(false);
     };
 
-    const handleCancelDelete = (e) => {
-        e?.stopPropagation();
-        e?.preventDefault();
+    const handleCancelDelete = () => {
         setShowDeleteConfirm(false);
     };
 
-    const handleEditClick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
+    const handleEditClick = () => {
         // TODO: Implement edit functionality
         console.log('Edit book:', book.id);
     };
-
-    const isDialogOpen = showDeleteConfirm;
 
     return (
         <motion.div
@@ -49,10 +38,12 @@ const BookCard = ({ book, index, onClick }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             className="book-card group"
-            //onClick={onClick}
-            onClick={isDialogOpen ? undefined : onClick}
         >
-            <div className="flex items-start space-x-4 flex-grow">
+            {/* Zone cliquable : contenu principal du livre */}
+            <div
+                className="flex items-start space-x-4 flex-grow cursor-pointer"
+                onClick={onClick}
+            >
                 <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary shadow-sm group-hover:bg-primary/20 transition-all duration-200">
                         <Book className="h-6 w-6" />
@@ -91,6 +82,7 @@ const BookCard = ({ book, index, onClick }) => {
                         {book.shelf}
                     </span>
                     <div className="flex items-center gap-1">
+                        {' '}
                         <button
                             className="p-1.5 rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
                             onClick={handleEditClick}
@@ -107,38 +99,29 @@ const BookCard = ({ book, index, onClick }) => {
                         </button>
                     </div>
                 </div>
-            )}
-
+            )}{' '}
             {/* Dialog de confirmation de suppression */}
-            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <DialogContent 
-                    className="sm:max-w-sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                    }}
-                >
+            <Dialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+            >
+                <DialogContent className="sm:max-w-sm">
                     <DialogHeader className="text-center">
                         <DialogTitle className="main-title-text text-center pb-3 font-bold">
                             Êtes-vous sûr ?
                         </DialogTitle>
                         <DialogDescription className="text-center">
-                            Vous êtes sur le point de supprimer <em>"{book.title}"</em>.
+                            Vous êtes sur le point de supprimer{' '}
+                            <em>"{book.title}"</em>.
                             <br />
                             Cette action est irréversible.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={handleCancelDelete}
-                        >
+                        <Button variant="outline" onClick={handleCancelDelete}>
                             Annuler
                         </Button>
-                        <Button
-                            variant="default"
-                            onClick={handleConfirmDelete}
-                        >
+                        <Button variant="default" onClick={handleConfirmDelete}>
                             Confirmer
                         </Button>
                     </DialogFooter>

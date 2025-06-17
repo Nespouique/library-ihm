@@ -153,15 +153,15 @@
 }
 
 .book-card {
-    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col;
+    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full flex flex-col;
 }
 
 .author-card {
-    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col;
+    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full flex flex-col;
 }
 
 .shelf-card {
-    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col;
+    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full flex flex-col;
 }
 
 .status-badge {
