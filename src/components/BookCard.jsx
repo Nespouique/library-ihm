@@ -10,17 +10,48 @@ import {
     DialogTitle,
 } from './ui/dialog';
 import { Button } from './ui/button';
+import { toast } from './ui/use-toast';
+import { booksService } from '../services/api';
 
-const BookCard = ({ book, index, onClick }) => {
+const BookCard = ({ book, index, onClick, onDelete }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    
     const handleDeleteClick = () => {
         setShowDeleteConfirm(true);
     };
 
-    const handleConfirmDelete = () => {
-        // TODO: Implement actual delete functionality
-        console.log('Deleting book:', book.id);
-        setShowDeleteConfirm(false);
+    const handleConfirmDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await booksService.deleteBook(book.id);
+            
+            toast({
+                title: "Livre supprimé",
+                description: `Le livre "${book.title}" a été supprimé avec succès.`,
+                variant: "success",
+            });
+            
+            setShowDeleteConfirm(false);
+            
+            // Appeler la fonction de callback pour mettre à jour la liste
+            if (onDelete) {
+                onDelete(book.id);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression du livre:', error);
+            
+            // Mapper les erreurs spécifiques (si nécessaire pour les livres)
+            let errorMessage = "Veuillez réessayer.";
+            
+            toast({
+                title: "Erreur - Impossible de supprimer le livre",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleCancelDelete = () => {
@@ -118,11 +149,19 @@ const BookCard = ({ book, index, onClick }) => {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="sm:justify-center">
-                        <Button variant="outline" onClick={handleCancelDelete}>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleCancelDelete}
+                            disabled={isDeleting}
+                        >
                             Annuler
                         </Button>
-                        <Button variant="default" onClick={handleConfirmDelete}>
-                            Confirmer
+                        <Button 
+                            variant="default" 
+                            onClick={handleConfirmDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? 'Suppression...' : 'Confirmer'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

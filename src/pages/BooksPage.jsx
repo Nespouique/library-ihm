@@ -8,7 +8,7 @@ import AddBookDialog from '@/components/AddBookDialog';
 import BookDetailDialog from '@/components/BookDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
-import { booksService, shelvesService } from '@/services/api';
+import { booksService, shelvesService, authorsService } from '@/services/api';
 
 const BooksPage = ({ initialSearchTerm }) => {
     const [books, setBooks] = useState([]);
@@ -27,10 +27,11 @@ const BooksPage = ({ initialSearchTerm }) => {
             setLoading(true);
             setError(null);
 
-            // Charger les livres et les étagères en parallèle
-            const [booksResponse, shelvesResponse] = await Promise.all([
+            // Charger les livres, les étagères et les auteurs en parallèle
+            const [booksResponse, shelvesResponse, authorsResponse] = await Promise.all([
                 booksService.getBooks(1),
                 shelvesService.getShelves(1),
+                authorsService.getAuthors(1),
             ]);
 
             // Créer un mapping ID étagère -> nom étagère
@@ -39,11 +40,19 @@ const BooksPage = ({ initialSearchTerm }) => {
                 shelvesMap[shelf.id] = shelf.name;
             });
 
+            // Créer un mapping ID auteur -> nom complet auteur
+            const authorsMap = {};
+            authorsResponse.data.forEach((author) => {
+                authorsMap[author.id] = `${author.firstName} ${author.lastName}`;
+            });
+
             // Transformer les données API vers le format attendu par l'interface
             const transformedBooks = booksResponse.data.map((book) => ({
                 id: book.id,
                 title: book.title,
-                author: `${book.author.firstName} ${book.author.lastName}`,
+                author: book.author
+                    ? authorsMap[book.author] || book.author
+                    : 'Auteur inconnu', // Utiliser le nom complet de l'auteur
                 isbn: book.isbn,
                 description: book.description,
                 shelf: book.shelf
@@ -76,6 +85,13 @@ const BooksPage = ({ initialSearchTerm }) => {
         loadBooks();
     }, []);
 
+    // Fonction pour supprimer un livre de la liste locale
+    const handleBookDelete = (deletedBookId) => {
+        setBooks((prevBooks) =>
+            prevBooks.filter((book) => book.id !== deletedBookId)
+        );
+    };
+
     const handleAddBook = async (newBook) => {
         try {
             // Déboguer les données reçues
@@ -87,7 +103,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                 author: newBook.authorId, // API attend 'author' avec l'ID
                 isbn: newBook.isbn,
                 description: newBook.description,
-                date: newBook.publicationDate,
+                date: newBook.publicationDate || null, // Utiliser null si pas de date
                 jacket: newBook.coverUrl || null, // Utiliser null au lieu d'undefined
                 shelf: newBook.shelfId || null, // API attend 'shelf' avec l'ID ou null
             };
@@ -254,6 +270,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                                     book={book}
                                     index={index}
                                     onClick={() => setSelectedBook(book)}
+                                    onDelete={handleBookDelete}
                                 />
                             </div>
                         ))
