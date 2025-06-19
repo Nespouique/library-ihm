@@ -1,3 +1,5 @@
+import prettierConfig from 'eslint-config-prettier';
+
 export default [
     {
         // Files and directories to ignore
@@ -36,14 +38,9 @@ export default [
             },
         },
         rules: {
-            // Code style
-            indent: ['error', 4],
-            quotes: ['error', 'single', { avoidEscape: true }],
-            semi: ['error', 'always'],
-
             // ES6+
-            'arrow-spacing': 'error',
-            'no-duplicate-imports': 'error', // Best practices
+            'no-duplicate-imports': 'error',
+            // Best practices
             'no-unused-vars': [
                 'warn', // Changed to warn instead of error
                 {
@@ -95,4 +92,6 @@ export default [
             // React specific rules can be added here if needed
         },
     },
+    // Apply Prettier config to disable conflicting rules
+    prettierConfig,
 ];

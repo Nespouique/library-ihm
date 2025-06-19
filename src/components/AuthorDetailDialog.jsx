@@ -8,7 +8,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, BookHeart, Users, BookOpen } from 'lucide-react';
+import { BookHeart, Users, BookOpen } from 'lucide-react';
 
 const AuthorDetailDialog = ({
     author,
@@ -18,19 +18,6 @@ const AuthorDetailDialog = ({
     onNavigateToBooks,
 }) => {
     if (!author) return null;
-
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        try {
-            return new Date(dateString).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            });
-        } catch (error) {
-            return 'Date invalide';
-        }
-    };
 
     const handleViewBooks = () => {
         onNavigateToBooks(`${author.firstName} ${author.lastName}`);
@@ -46,25 +33,6 @@ const AuthorDetailDialog = ({
                 </DialogHeader>
 
                 <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
-                    <div className="flex items-center">
-                        <CalendarDays className="h-5 w-5 mr-3 text-primary" />
-                        <p>
-                            <span className="font-medium">Né(e) le :</span>{' '}
-                            {formatDate(author.birthDate)}
-                        </p>
-                    </div>
-                    {author.deathDate && (
-                        <div className="flex items-center">
-                            <CalendarDays className="h-5 w-5 mr-3 text-primary" />
-                            <p>
-                                <span className="font-medium">
-                                    Décédé(e) le :
-                                </span>{' '}
-                                {formatDate(author.deathDate)}
-                            </p>
-                        </div>
-                    )}
-
                     {books.length > 0 && (
                         <div>
                             <h4 className="font-medium mb-2 text-foreground flex items-center">
@@ -86,7 +54,7 @@ const AuthorDetailDialog = ({
                     )}
                 </div>
 
-                <DialogFooter className="pt-4 sm:justify-between">
+                <DialogFooter className="pt-4">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
@@ -10,44 +11,58 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 
-const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
+const AuthorDialog = ({
+    open,
+    onOpenChange,
+    onAddAuthor,
+    onUpdateAuthor,
+    authorToEdit = null,
+    mode = 'add', // 'add' ou 'edit'
+}) => {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        birthDate: '',
-        deathDate: '',
     });
+
+    const isEditMode = mode === 'edit' || authorToEdit !== null;
+
+    // Validation des champs obligatoires
+    const isFormValid = formData.firstName.trim() && formData.lastName.trim();
+
+    // Reset des champs quand la popup se ferme ou pré-remplir en mode édition
+    useEffect(() => {
+        if (!open) {
+            setFormData({
+                firstName: '',
+                lastName: '',
+            });
+        } else if (isEditMode && authorToEdit) {
+            // Pré-remplir avec les données de l'auteur à modifier
+            setFormData({
+                firstName: authorToEdit.firstName || '',
+                lastName: authorToEdit.lastName || '',
+            });
+        }
+    }, [open, isEditMode, authorToEdit]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.firstName || !formData.lastName) {
-            toast({
-                title: 'Erreur',
-                description: 'Veuillez remplir le prénom et le nom.',
-                variant: 'destructive',
-            });
-            return;
+        if (!isFormValid) {
+            return; // Ne devrait pas arriver car le bouton est désactivé
         }
 
-        onAddAuthor({
-            ...formData,
-            id: Date.now().toString(),
-            bookCount: 0,
-        });
+        if (isEditMode && onUpdateAuthor) {
+            onUpdateAuthor({
+                ...formData,
+                id: authorToEdit.id,
+            });
+        } else if (onAddAuthor) {
+            onAddAuthor({
+                ...formData,
+            });
+        }
 
-        setFormData({
-            firstName: '',
-            lastName: '',
-            birthDate: '',
-            deathDate: '',
-        });
-
-        onOpenChange(false);
-
-        toast({
-            title: 'Auteur ajouté !',
-            description: "L'auteur a été ajouté avec succès à la bibliothèque.",
-        });
+        onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
 
     return (
@@ -55,8 +70,15 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle className="main-title-text">
-                        Ajouter un auteur
+                        {isEditMode
+                            ? 'Modifier un auteur'
+                            : 'Ajouter un auteur'}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        {isEditMode
+                            ? 'Modifiez les informations de cet auteur.'
+                            : 'Ajoutez un nouvel auteur à votre bibliothèque.'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-3">
@@ -93,37 +115,6 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label htmlFor="birthDate">Date de naissance</Label>
-                            <Input
-                                id="birthDate"
-                                type="date"
-                                value={formData.birthDate}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        birthDate: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="deathDate">Date de décès</Label>
-                            <Input
-                                id="deathDate"
-                                type="date"
-                                value={formData.deathDate}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        deathDate: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-                    </div>
-
                     <div className="flex justify-end space-x-2 pt-3">
                         <Button
                             type="button"
@@ -134,9 +125,10 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
                         </Button>
                         <Button
                             type="submit"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            disabled={!isFormValid}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Ajouter
+                            {isEditMode ? 'Modifier' : 'Ajouter'}
                         </Button>
                     </div>
                 </form>
@@ -145,4 +137,4 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
     );
 };
 
-export default AddAuthorDialog;
+export default AuthorDialog;
