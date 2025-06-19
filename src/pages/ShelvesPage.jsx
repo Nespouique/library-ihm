@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import SearchBar from '@/components/SearchBar';
 import ShelfCard from '@/components/ShelfCard';
 import FloatingButton from '@/components/FloatingButton';
-import AddShelfDialog from '@/components/AddShelfDialog';
+import ShelfDialog from '@/components/ShelfDialog';
 import ShelfDetailDialog from '@/components/ShelfDetailDialog';
 import { toast } from '@/components/ui/use-toast';
 import { shelvesService, booksService, authorsService } from '@/services/api';
@@ -16,6 +16,8 @@ const ShelvesPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [selectedShelf, setSelectedShelf] = useState(null);
+    const [shelfToEdit, setShelfToEdit] = useState(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     // Charger les livres depuis l'API
     const loadBooks = async () => {
@@ -173,6 +175,46 @@ const ShelvesPage = () => {
         }
     };
 
+    const handleEditShelf = (shelf) => {
+        setShelfToEdit(shelf);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdateShelf = async (updatedShelfData) => {
+        try {
+            // Appeler l'API pour mettre à jour l'étagère
+            const response = await shelvesService.updateShelf(updatedShelfData.id, {
+                name: updatedShelfData.name
+            });
+            console.log('Étagère mise à jour via API:', response);
+
+            // Mettre à jour l'étagère dans la liste locale
+            const updatedShelves = shelves.map(shelf => 
+                shelf.id === updatedShelfData.id 
+                    ? { 
+                        ...shelf, 
+                        name: updatedShelfData.name 
+                      }
+                    : shelf
+            );
+
+            setShelves(sortShelves(updatedShelves));
+
+            toast({
+                title: 'Succès - Étagère modifiée !',
+                description: `${updatedShelfData.name} a été modifiée avec succès.`,
+                variant: 'success',
+            });
+        } catch (error) {
+            console.error("Erreur lors de la modification de l'étagère : ", error);
+            toast({
+                title: `Erreur - Impossible de modifier l'étagère`,
+                description: `${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
     const filteredShelves = sortShelves(
         shelves.filter((shelf) =>
             shelf.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -251,6 +293,7 @@ const ShelvesPage = () => {
                                     index={index}
                                     onClick={() => setSelectedShelf(shelf)}
                                     onDelete={handleShelfDelete}
+                                    onEdit={handleEditShelf}
                                 />
                             </div>
                         ))
@@ -290,10 +333,24 @@ const ShelvesPage = () => {
 
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
 
-            <AddShelfDialog
+            <ShelfDialog
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
                 onAddShelf={handleAddShelf}
+                mode="add"
+            />
+
+            <ShelfDialog
+                open={isEditDialogOpen}
+                onOpenChange={(open) => {
+                    setIsEditDialogOpen(open);
+                    if (!open) {
+                        setShelfToEdit(null);
+                    }
+                }}
+                onUpdateShelf={handleUpdateShelf}
+                shelfToEdit={shelfToEdit}
+                mode="edit"
             />
             {selectedShelf && (
                 <ShelfDetailDialog

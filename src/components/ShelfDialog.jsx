@@ -11,22 +11,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 
-const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
+const ShelfDialog = ({ 
+    open, 
+    onOpenChange, 
+    onAddShelf, 
+    onUpdateShelf, 
+    shelfToEdit = null,
+    mode = 'add' // 'add' ou 'edit'
+}) => {
     const [formData, setFormData] = useState({
         name: '',
     });
 
+    const isEditMode = mode === 'edit' || shelfToEdit !== null;
+
     // Validation des champs obligatoires
     const isFormValid = formData.name.trim();
 
-    // Reset des champs quand la popup se ferme
+    // Reset des champs quand la popup se ferme ou pré-remplir en mode édition
     useEffect(() => {
         if (!open) {
             setFormData({
                 name: '',
             });
+        } else if (isEditMode && shelfToEdit) {
+            // Pré-remplir avec les données de l'étagère à modifier
+            setFormData({
+                name: shelfToEdit.name || '',
+            });
         }
-    }, [open]);
+    }, [open, isEditMode, shelfToEdit]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -34,9 +48,16 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
             return; // Ne devrait pas arriver car le bouton est désactivé
         }
 
-        onAddShelf({
-            ...formData,
-        });
+        if (isEditMode && onUpdateShelf) {
+            onUpdateShelf({
+                ...formData,
+                id: shelfToEdit.id,
+            });
+        } else if (onAddShelf) {
+            onAddShelf({
+                ...formData,
+            });
+        }
 
         onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
@@ -46,10 +67,13 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle className="main-title-text">
-                        Ajouter une étagère
+                        {isEditMode ? 'Modifier une étagère' : 'Ajouter une étagère'}
                     </DialogTitle>
                     <DialogDescription className="sr-only">
-                        Créez une nouvelle étagère pour organiser vos livres.
+                        {isEditMode 
+                            ? 'Modifiez les informations de cette étagère.'
+                            : 'Créez une nouvelle étagère pour organiser vos livres.'
+                        }
                     </DialogDescription>
                 </DialogHeader>
 
@@ -83,7 +107,7 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
                             disabled={!isFormValid}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Ajouter
+                            {isEditMode ? 'Modifier' : 'Ajouter'}
                         </Button>
                     </div>
                 </form>
@@ -92,4 +116,4 @@ const AddShelfDialog = ({ open, onOpenChange, onAddShelf }) => {
     );
 };
 
-export default AddShelfDialog;
+export default ShelfDialog;
