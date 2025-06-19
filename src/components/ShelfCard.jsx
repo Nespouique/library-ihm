@@ -25,33 +25,37 @@ const ShelfCard = ({ shelf, index, onClick, onDelete }) => {
         setIsDeleting(true);
         try {
             await shelvesService.deleteShelf(shelf.id);
-            
+
             toast({
-                title: "Étagère supprimée",
+                title: 'Étagère supprimée',
                 description: `L'étagère "${shelf.name}" a été supprimée avec succès.`,
-                variant: "success",
+                variant: 'success',
             });
-            
+
             setShowDeleteConfirm(false);
-            
+
             // Appeler la fonction de callback pour mettre à jour la liste
             if (onDelete) {
                 onDelete(shelf.id);
             }
         } catch (error) {
-            console.error('Erreur lors de la suppression de l\'étagère:', error);
-            
+            console.error("Erreur lors de la suppression de l'étagère:", error);
+
             // Mapper les erreurs spécifiques
-            let errorMessage = "Impossible de supprimer l'étagère. Veuillez réessayer.";
-            
-            if (error.message && error.message.includes("Cannot delete shelf: it contains books")) {
+            let errorMessage =
+                "Impossible de supprimer l'étagère. Veuillez réessayer.";
+
+            if (
+                error.message &&
+                error.message.includes('Cannot delete shelf: it contains books')
+            ) {
                 errorMessage = "L'étagère contient des livres";
             }
-            
+
             toast({
                 title: "Erreur - Impossible de supprimer l'étagère",
                 description: errorMessage,
-                variant: "destructive",
+                variant: 'destructive',
             });
         } finally {
             setIsDeleting(false);
@@ -103,16 +107,42 @@ const ShelfCard = ({ shelf, index, onClick, onDelete }) => {
                     <div></div> {/* Espace vide à gauche */}
                     <div className="flex items-center gap-1">
                         <button
-                            className="p-1.5 rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
-                            onClick={handleEditClick}
-                            title="Modifier l'étagère"
+                            className={`p-1.5 rounded-md transition-colors group/edit ${
+                                shelf.id === 'unclassified'
+                                    ? 'text-muted-foreground/50 cursor-not-allowed'
+                                    : 'hover:bg-primary/10 hover:text-primary'
+                            }`}
+                            onClick={
+                                shelf.id === 'unclassified'
+                                    ? undefined
+                                    : handleEditClick
+                            }
+                            disabled={shelf.id === 'unclassified'}
+                            title={
+                                shelf.id === 'unclassified'
+                                    ? 'L\'étagère "Non classés" ne peut pas être modifiée'
+                                    : "Modifier l'étagère"
+                            }
                         >
                             <Edit className="h-4 w-4" />
                         </button>
                         <button
-                            className="p-1.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors group/delete"
-                            onClick={handleDeleteClick}
-                            title="Supprimer l'étagère"
+                            className={`p-1.5 rounded-md transition-colors group/delete ${
+                                shelf.id === 'unclassified'
+                                    ? 'text-muted-foreground/50 cursor-not-allowed'
+                                    : 'hover:bg-destructive/10 hover:text-destructive'
+                            }`}
+                            onClick={
+                                shelf.id === 'unclassified'
+                                    ? undefined
+                                    : handleDeleteClick
+                            }
+                            disabled={shelf.id === 'unclassified'}
+                            title={
+                                shelf.id === 'unclassified'
+                                    ? 'L\'étagère "Non classés" ne peut pas être supprimée'
+                                    : "Supprimer l'étagère"
+                            }
                         >
                             <Trash2 className="h-4 w-4" />
                         </button>
@@ -138,15 +168,15 @@ const ShelfCard = ({ shelf, index, onClick, onDelete }) => {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="sm:justify-center">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={handleCancelDelete}
                             disabled={isDeleting}
                         >
                             Annuler
                         </Button>
-                        <Button 
-                            variant="default" 
+                        <Button
+                            variant="default"
                             onClick={handleConfirmDelete}
                             disabled={isDeleting}
                         >

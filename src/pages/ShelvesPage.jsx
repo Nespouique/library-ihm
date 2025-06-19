@@ -6,7 +6,7 @@ import FloatingButton from '@/components/FloatingButton';
 import AddShelfDialog from '@/components/AddShelfDialog';
 import ShelfDetailDialog from '@/components/ShelfDetailDialog';
 import { toast } from '@/components/ui/use-toast';
-import { shelvesService, booksService } from '@/services/api';
+import { shelvesService, booksService, authorsService } from '@/services/api';
 
 const ShelvesPage = () => {
     const [shelves, setShelves] = useState([]);
@@ -20,11 +20,25 @@ const ShelvesPage = () => {
     // Charger les livres depuis l'API
     const loadBooks = async () => {
         try {
-            const response = await booksService.getBooks(1);
-            const transformedBooks = response.data.map((book) => ({
+            // Charger les livres et les auteurs en parallèle
+            const [booksResponse, authorsResponse] = await Promise.all([
+                booksService.getBooks(1),
+                authorsService.getAuthors(1),
+            ]);
+
+            // Créer un mapping ID auteur -> nom complet auteur
+            const authorsMap = {};
+            authorsResponse.data.forEach((author) => {
+                authorsMap[author.id] =
+                    `${author.firstName} ${author.lastName}`;
+            });
+
+            const transformedBooks = booksResponse.data.map((book) => ({
                 id: book.id,
                 title: book.title,
-                author: `${book.author.firstName} ${book.author.lastName}`,
+                author: book.author
+                    ? authorsMap[book.author] || book.author
+                    : 'Auteur inconnu', // Utiliser le nom complet de l'auteur
                 shelf: book.shelf, // ID de l'étagère
                 isbn: book.isbn,
                 description: book.description,
@@ -71,7 +85,7 @@ const ShelvesPage = () => {
             if (unclassifiedBookCount > 0) {
                 transformedShelves.push({
                     id: 'unclassified',
-                    name: 'Non classé',
+                    name: 'Non classés',
                     bookCount: unclassifiedBookCount,
                 });
             }

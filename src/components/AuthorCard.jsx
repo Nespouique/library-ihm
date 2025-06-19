@@ -26,32 +26,35 @@ const AuthorCard = ({ author, index, onClick, onDelete }) => {
         setIsDeleting(true);
         try {
             await authorsService.deleteAuthor(author.id);
-            
+
             toast({
-                title: "Auteur supprimé",
+                title: 'Auteur supprimé',
                 description: `L'auteur "${fullName}" a été supprimé avec succès.`,
             });
-            
+
             setShowDeleteConfirm(false);
-            
+
             // Appeler la fonction de callback pour mettre à jour la liste
             if (onDelete) {
                 onDelete(author.id);
             }
         } catch (error) {
-            console.error('Erreur lors de la suppression de l\'auteur:', error);
-            
+            console.error("Erreur lors de la suppression de l'auteur:", error);
+
             // Mapper les erreurs spécifiques
-            let errorMessage = "Veuillez réessayer.";
-            
-            if (error.message && error.message.includes("Cannot delete author: it has books")) {
+            let errorMessage = 'Veuillez réessayer.';
+
+            if (
+                error.message &&
+                error.message.includes('Cannot delete author: it has books')
+            ) {
                 errorMessage = "L'auteur a des livres dans la bibliothèque";
             }
-            
+
             toast({
                 title: "Erreur - Impossible de supprimer l'auteur",
                 description: errorMessage,
-                variant: "destructive",
+                variant: 'destructive',
             });
         } finally {
             setIsDeleting(false);
@@ -139,15 +142,15 @@ const AuthorCard = ({ author, index, onClick, onDelete }) => {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="sm:justify-center">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={handleCancelDelete}
                             disabled={isDeleting}
                         >
                             Annuler
                         </Button>
-                        <Button 
-                            variant="default" 
+                        <Button
+                            variant="default"
                             onClick={handleConfirmDelete}
                             disabled={isDeleting}
                         >

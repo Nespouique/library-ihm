@@ -109,8 +109,8 @@ const AuthorsPage = () => {
 
     // Fonction pour supprimer un auteur de la liste locale
     const handleAuthorDelete = (deletedAuthorId) => {
-        setAuthors(prevAuthors => 
-            prevAuthors.filter(author => author.id !== deletedAuthorId)
+        setAuthors((prevAuthors) =>
+            prevAuthors.filter((author) => author.id !== deletedAuthorId)
         );
     };
 

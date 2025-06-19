@@ -28,11 +28,12 @@ const BooksPage = ({ initialSearchTerm }) => {
             setError(null);
 
             // Charger les livres, les étagères et les auteurs en parallèle
-            const [booksResponse, shelvesResponse, authorsResponse] = await Promise.all([
-                booksService.getBooks(1),
-                shelvesService.getShelves(1),
-                authorsService.getAuthors(1),
-            ]);
+            const [booksResponse, shelvesResponse, authorsResponse] =
+                await Promise.all([
+                    booksService.getBooks(1),
+                    shelvesService.getShelves(1),
+                    authorsService.getAuthors(1),
+                ]);
 
             // Créer un mapping ID étagère -> nom étagère
             const shelvesMap = {};
@@ -43,7 +44,8 @@ const BooksPage = ({ initialSearchTerm }) => {
             // Créer un mapping ID auteur -> nom complet auteur
             const authorsMap = {};
             authorsResponse.data.forEach((author) => {
-                authorsMap[author.id] = `${author.firstName} ${author.lastName}`;
+                authorsMap[author.id] =
+                    `${author.firstName} ${author.lastName}`;
             });
 
             // Transformer les données API vers le format attendu par l'interface

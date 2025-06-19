@@ -52,7 +52,9 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                     label: shelf.name,
                     id: shelf.id,
                 }))
-                .sort((a, b) => a.label.localeCompare(b.label, 'fr', { numeric: true })), // Tri numérique naturel
+                .sort((a, b) =>
+                    a.label.localeCompare(b.label, 'fr', { numeric: true })
+                ), // Tri numérique naturel
         [shelves]
     ); // Validation des champs obligatoires
     const isFormValid =
