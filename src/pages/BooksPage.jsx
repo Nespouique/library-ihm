@@ -76,6 +76,13 @@ const BooksPage = ({ initialSearchTerm }) => {
         loadBooks();
     }, []);
 
+    // Fonction pour supprimer un livre de la liste locale
+    const handleBookDelete = (deletedBookId) => {
+        setBooks((prevBooks) =>
+            prevBooks.filter((book) => book.id !== deletedBookId)
+        );
+    };
+
     const handleAddBook = async (newBook) => {
         try {
             // Déboguer les données reçues
@@ -87,7 +94,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                 author: newBook.authorId, // API attend 'author' avec l'ID
                 isbn: newBook.isbn,
                 description: newBook.description,
-                date: newBook.publicationDate,
+                date: newBook.publicationDate || null, // Utiliser null si pas de date
                 jacket: newBook.coverUrl || null, // Utiliser null au lieu d'undefined
                 shelf: newBook.shelfId || null, // API attend 'shelf' avec l'ID ou null
             };
@@ -254,6 +261,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                                     book={book}
                                     index={index}
                                     onClick={() => setSelectedBook(book)}
+                                    onDelete={handleBookDelete}
                                 />
                             </div>
                         ))

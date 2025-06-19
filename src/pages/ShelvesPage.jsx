@@ -98,6 +98,13 @@ const ShelvesPage = () => {
         loadData();
     }, []);
 
+    // Fonction pour supprimer une étagère de la liste locale
+    const handleShelfDelete = (deletedShelfId) => {
+        setShelves((prevShelves) =>
+            prevShelves.filter((shelf) => shelf.id !== deletedShelfId)
+        );
+    };
+
     // Fonction de tri personnalisée pour les étagères
     const sortShelves = (shelves) => {
         return shelves.sort((a, b) => {
@@ -229,6 +236,7 @@ const ShelvesPage = () => {
                                     shelf={shelf}
                                     index={index}
                                     onClick={() => setSelectedShelf(shelf)}
+                                    onDelete={handleShelfDelete}
                                 />
                             </div>
                         ))

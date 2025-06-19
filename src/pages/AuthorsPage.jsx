@@ -107,6 +107,13 @@ const AuthorsPage = () => {
         loadData();
     }, []);
 
+    // Fonction pour supprimer un auteur de la liste locale
+    const handleAuthorDelete = (deletedAuthorId) => {
+        setAuthors(prevAuthors => 
+            prevAuthors.filter(author => author.id !== deletedAuthorId)
+        );
+    };
+
     // Fonctions utilitaires pour normaliser les noms
     const normalizeFirstName = (firstName) => {
         if (!firstName) return '';
@@ -300,6 +307,7 @@ const AuthorsPage = () => {
                                     author={author}
                                     index={index}
                                     onClick={() => setSelectedAuthor(author)}
+                                    onDelete={handleAuthorDelete}
                                 />
                             </div>
                         ))

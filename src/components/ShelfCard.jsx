@@ -10,18 +10,52 @@ import {
     DialogTitle,
 } from './ui/dialog';
 import { Button } from './ui/button';
+import { toast } from './ui/use-toast';
+import { shelvesService } from '../services/api';
 
-const ShelfCard = ({ shelf, index, onClick }) => {
+const ShelfCard = ({ shelf, index, onClick, onDelete }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDeleteClick = () => {
         setShowDeleteConfirm(true);
     };
 
-    const handleConfirmDelete = () => {
-        // TODO: Implement actual delete functionality
-        console.log('Deleting shelf:', shelf.id);
-        setShowDeleteConfirm(false);
+    const handleConfirmDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await shelvesService.deleteShelf(shelf.id);
+            
+            toast({
+                title: "Étagère supprimée",
+                description: `L'étagère "${shelf.name}" a été supprimée avec succès.`,
+                variant: "success",
+            });
+            
+            setShowDeleteConfirm(false);
+            
+            // Appeler la fonction de callback pour mettre à jour la liste
+            if (onDelete) {
+                onDelete(shelf.id);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression de l\'étagère:', error);
+            
+            // Mapper les erreurs spécifiques
+            let errorMessage = "Impossible de supprimer l'étagère. Veuillez réessayer.";
+            
+            if (error.message && error.message.includes("Cannot delete shelf: it contains books")) {
+                errorMessage = "L'étagère contient des livres";
+            }
+            
+            toast({
+                title: "Erreur - Impossible de supprimer l'étagère",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleCancelDelete = () => {
@@ -104,11 +138,19 @@ const ShelfCard = ({ shelf, index, onClick }) => {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="sm:justify-center">
-                        <Button variant="outline" onClick={handleCancelDelete}>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleCancelDelete}
+                            disabled={isDeleting}
+                        >
                             Annuler
                         </Button>
-                        <Button variant="default" onClick={handleConfirmDelete}>
-                            Confirmer
+                        <Button 
+                            variant="default" 
+                            onClick={handleConfirmDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? 'Suppression...' : 'Confirmer'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

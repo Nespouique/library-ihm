@@ -46,11 +46,13 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
 
     const shelfOptions = useMemo(
         () =>
-            shelves.map((shelf) => ({
-                value: shelf.id.toString(), // Utiliser l'ID comme valeur
-                label: shelf.name,
-                id: shelf.id,
-            })),
+            shelves
+                .map((shelf) => ({
+                    value: shelf.id.toString(), // Utiliser l'ID comme valeur
+                    label: shelf.name,
+                    id: shelf.id,
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label, 'fr', { numeric: true })), // Tri numérique naturel
         [shelves]
     ); // Validation des champs obligatoires
     const isFormValid =
@@ -110,7 +112,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
 
         // Format the date for submission (évite le décalage de fuseau horaire)
         const formatDateForSubmission = (date) => {
-            if (!date) return '';
+            if (!date) return null; // Retourner null au lieu d'une chaîne vide
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
