@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchBar from '@/components/SearchBar';
 import AuthorCard from '@/components/AuthorCard';
 import FloatingButton from '@/components/FloatingButton';
-import AddAuthorDialog from '@/components/AddAuthorDialog';
+import AuthorDialog from '@/components/AuthorDialog';
 import AuthorDetailDialog from '@/components/AuthorDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
@@ -18,8 +18,19 @@ const AuthorsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [selectedAuthor, setSelectedAuthor] = useState(null);
+    const [authorToEdit, setAuthorToEdit] = useState(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const navigate = useNavigate();
     const authorRefs = useRef({});
+
+    // Fonction réutilisable pour trier les auteurs par nom (Nom, Prénom)
+    const sortAuthors = (authorsArray) => {
+        return authorsArray.sort((a, b) => {
+            const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
+            const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
+            return nameA.localeCompare(nameB);
+        });
+    };
 
     // Charger les auteurs depuis l'API et calculer le nombre de livres
     const loadAuthors = async (booksData = []) => {
@@ -33,7 +44,7 @@ const AuthorsPage = () => {
             const transformedAuthors = response.data.map((author) => {
                 // Calculer le nombre de livres pour cet auteur
                 const authorBookCount = booksData.filter(
-                    (book) => book.authorId === author.id
+                    (book) => book.author === author.id
                 ).length;
 
                 return {
@@ -46,18 +57,7 @@ const AuthorsPage = () => {
                 };
             });
 
-            setAuthors(
-                transformedAuthors.sort((a, b) => {
-                    // Normaliser les noms pour un tri alphabétique correct
-                    const nameA = `${a.lastName} ${a.firstName}`
-                        .toLowerCase()
-                        .trim();
-                    const nameB = `${b.lastName} ${b.firstName}`
-                        .toLowerCase()
-                        .trim();
-                    return nameA.localeCompare(nameB);
-                })
-            );
+            setAuthors(sortAuthors(transformedAuthors));
         } catch (err) {
             console.error('Erreur lors du chargement des auteurs:', err);
             setError(
@@ -76,8 +76,7 @@ const AuthorsPage = () => {
             const transformedBooks = response.data.map((book) => ({
                 id: book.id,
                 title: book.title,
-                author: `${book.author.firstName} ${book.author.lastName}`,
-                authorId: book.author.id, // Garder l'ID pour le matching
+                author: book.author,
                 isbn: book.isbn,
                 description: book.description,
                 shelf: book.shelf || 'Non classé',
@@ -156,15 +155,7 @@ const AuthorsPage = () => {
                 bookCount: 0, // Nouvel auteur, pas de livres pour l'instant
             };
 
-            const updatedAuthors = [...authors, authorFromApi].sort((a, b) => {
-                const nameA = `${a.lastName} ${a.firstName}`
-                    .toLowerCase()
-                    .trim();
-                const nameB = `${b.lastName} ${b.firstName}`
-                    .toLowerCase()
-                    .trim();
-                return nameA.localeCompare(nameB);
-            });
+            const updatedAuthors = sortAuthors([...authors, authorFromApi]);
             setAuthors(updatedAuthors);
 
             toast({
@@ -182,17 +173,64 @@ const AuthorsPage = () => {
         }
     };
 
-    const filteredAuthors = authors
-        .filter((author) =>
+    const handleEditAuthor = (author) => {
+        setAuthorToEdit(author);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdateAuthor = async (updatedAuthorData) => {
+        try {
+            // Normaliser les noms avant l'envoi à l'API
+            const normalizedAuthor = {
+                firstName: normalizeFirstName(updatedAuthorData.firstName),
+                lastName: normalizeLastName(updatedAuthorData.lastName),
+            };
+
+            // Appeler l'API pour mettre à jour l'auteur
+            const response = await authorsService.updateAuthor(
+                updatedAuthorData.id,
+                normalizedAuthor
+            );
+            console.log('Auteur mis à jour via API:', response);
+
+            // Mettre à jour l'auteur dans la liste locale
+            const updatedAuthors = authors.map((author) =>
+                author.id === updatedAuthorData.id
+                    ? {
+                          ...author,
+                          firstName: normalizedAuthor.firstName,
+                          lastName: normalizedAuthor.lastName,
+                      }
+                    : author
+            );
+
+            setAuthors(sortAuthors(updatedAuthors));
+
+            toast({
+                title: 'Succès - Auteur modifié !',
+                description: `${normalizedAuthor.firstName} ${normalizedAuthor.lastName} a été modifié(e) avec succès.`,
+                variant: 'success',
+            });
+        } catch (error) {
+            console.error(
+                "Erreur lors de la modification de l'auteur : ",
+                error
+            );
+            toast({
+                title: `Erreur - Impossible de modifier l'auteur`,
+                description: `${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const filteredAuthors = sortAuthors(
+        authors.filter((author) =>
             `${author.firstName} ${author.lastName}`
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
         )
-        .sort((a, b) => {
-            const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
-            const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
-            return nameA.localeCompare(nameB);
-        });
+    );
 
     const handleLetterScroll = (char) => {
         let firstAuthorWithChar;
@@ -241,7 +279,7 @@ const AuthorsPage = () => {
 
     const getAuthorBooks = (author) => {
         // Utiliser l'ID de l'auteur pour un matching exact et trier par titre
-        const authorBooks = books.filter((book) => book.authorId === author.id);
+        const authorBooks = books.filter((book) => book.author === author.id);
         return authorBooks.sort((a, b) => a.title.localeCompare(b.title));
     };
 
@@ -308,6 +346,7 @@ const AuthorsPage = () => {
                                     index={index}
                                     onClick={() => setSelectedAuthor(author)}
                                     onDelete={handleAuthorDelete}
+                                    onEdit={handleEditAuthor}
                                 />
                             </div>
                         ))
@@ -346,10 +385,11 @@ const AuthorsPage = () => {
             )}
 
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
-            <AddAuthorDialog
+            <AuthorDialog
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
                 onAddAuthor={handleAddAuthor}
+                mode="add"
             />
             {selectedAuthor && (
                 <AuthorDetailDialog
@@ -363,6 +403,19 @@ const AuthorsPage = () => {
                     }}
                 />
             )}
+
+            <AuthorDialog
+                open={isEditDialogOpen}
+                onOpenChange={(open) => {
+                    setIsEditDialogOpen(open);
+                    if (!open) {
+                        setAuthorToEdit(null);
+                    }
+                }}
+                onUpdateAuthor={handleUpdateAuthor}
+                authorToEdit={authorToEdit}
+                mode="edit"
+            />
         </div>
     );
 };

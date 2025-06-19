@@ -11,24 +11,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 
-const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
+const AuthorDialog = ({
+    open,
+    onOpenChange,
+    onAddAuthor,
+    onUpdateAuthor,
+    authorToEdit = null,
+    mode = 'add', // 'add' ou 'edit'
+}) => {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
     });
 
+    const isEditMode = mode === 'edit' || authorToEdit !== null;
+
     // Validation des champs obligatoires
     const isFormValid = formData.firstName.trim() && formData.lastName.trim();
 
-    // Reset des champs quand la popup se ferme
+    // Reset des champs quand la popup se ferme ou pré-remplir en mode édition
     useEffect(() => {
         if (!open) {
             setFormData({
                 firstName: '',
                 lastName: '',
             });
+        } else if (isEditMode && authorToEdit) {
+            // Pré-remplir avec les données de l'auteur à modifier
+            setFormData({
+                firstName: authorToEdit.firstName || '',
+                lastName: authorToEdit.lastName || '',
+            });
         }
-    }, [open]);
+    }, [open, isEditMode, authorToEdit]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -36,9 +51,16 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
             return; // Ne devrait pas arriver car le bouton est désactivé
         }
 
-        onAddAuthor({
-            ...formData,
-        });
+        if (isEditMode && onUpdateAuthor) {
+            onUpdateAuthor({
+                ...formData,
+                id: authorToEdit.id,
+            });
+        } else if (onAddAuthor) {
+            onAddAuthor({
+                ...formData,
+            });
+        }
 
         onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
@@ -48,10 +70,14 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle className="main-title-text">
-                        Ajouter un auteur
+                        {isEditMode
+                            ? 'Modifier un auteur'
+                            : 'Ajouter un auteur'}
                     </DialogTitle>
                     <DialogDescription className="sr-only">
-                        Ajoutez un nouvel auteur à votre bibliothèque.
+                        {isEditMode
+                            ? 'Modifiez les informations de cet auteur.'
+                            : 'Ajoutez un nouvel auteur à votre bibliothèque.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -102,7 +128,7 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
                             disabled={!isFormValid}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Ajouter
+                            {isEditMode ? 'Modifier' : 'Ajouter'}
                         </Button>
                     </div>
                 </form>
@@ -111,4 +137,4 @@ const AddAuthorDialog = ({ open, onOpenChange, onAddAuthor }) => {
     );
 };
 
-export default AddAuthorDialog;
+export default AuthorDialog;

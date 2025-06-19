@@ -183,17 +183,20 @@ const ShelvesPage = () => {
     const handleUpdateShelf = async (updatedShelfData) => {
         try {
             // Appeler l'API pour mettre à jour l'étagère
-            const response = await shelvesService.updateShelf(updatedShelfData.id, {
-                name: updatedShelfData.name
-            });
+            const response = await shelvesService.updateShelf(
+                updatedShelfData.id,
+                {
+                    name: updatedShelfData.name,
+                }
+            );
             console.log('Étagère mise à jour via API:', response);
 
             // Mettre à jour l'étagère dans la liste locale
-            const updatedShelves = shelves.map(shelf => 
-                shelf.id === updatedShelfData.id 
-                    ? { 
-                        ...shelf, 
-                        name: updatedShelfData.name 
+            const updatedShelves = shelves.map((shelf) =>
+                shelf.id === updatedShelfData.id
+                    ? {
+                          ...shelf,
+                          name: updatedShelfData.name,
                       }
                     : shelf
             );
@@ -206,7 +209,10 @@ const ShelvesPage = () => {
                 variant: 'success',
             });
         } catch (error) {
-            console.error("Erreur lors de la modification de l'étagère : ", error);
+            console.error(
+                "Erreur lors de la modification de l'étagère : ",
+                error
+            );
             toast({
                 title: `Erreur - Impossible de modifier l'étagère`,
                 description: `${error.message}`,

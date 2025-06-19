@@ -11,13 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 
-const ShelfDialog = ({ 
-    open, 
-    onOpenChange, 
-    onAddShelf, 
-    onUpdateShelf, 
+const ShelfDialog = ({
+    open,
+    onOpenChange,
+    onAddShelf,
+    onUpdateShelf,
     shelfToEdit = null,
-    mode = 'add' // 'add' ou 'edit'
+    mode = 'add', // 'add' ou 'edit'
 }) => {
     const [formData, setFormData] = useState({
         name: '',
@@ -67,13 +67,14 @@ const ShelfDialog = ({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle className="main-title-text">
-                        {isEditMode ? 'Modifier une étagère' : 'Ajouter une étagère'}
+                        {isEditMode
+                            ? 'Modifier une étagère'
+                            : 'Ajouter une étagère'}
                     </DialogTitle>
                     <DialogDescription className="sr-only">
-                        {isEditMode 
+                        {isEditMode
                             ? 'Modifiez les informations de cette étagère.'
-                            : 'Créez une nouvelle étagère pour organiser vos livres.'
-                        }
+                            : 'Créez une nouvelle étagère pour organiser vos livres.'}
                     </DialogDescription>
                 </DialogHeader>
 
