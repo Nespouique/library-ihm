@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import FloatingButton from '@/components/FloatingButton';
-import AddBookDialog from '@/components/AddBookDialog';
+import BookDialog from '@/components/BookDialog';
 import BookDetailDialog from '@/components/BookDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
@@ -17,6 +17,10 @@ const BooksPage = ({ initialSearchTerm }) => {
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
+    const [bookToEdit, setBookToEdit] = useState(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [authorsMap, setAuthorsMap] = useState({});
+    const [shelvesMap, setShelvesMap] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
     const bookRefs = useRef({});
@@ -55,16 +59,21 @@ const BooksPage = ({ initialSearchTerm }) => {
                 author: book.author
                     ? authorsMap[book.author] || book.author
                     : 'Auteur inconnu', // Utiliser le nom complet de l'auteur
+                authorId: book.author, // Conserver l'ID original pour l'édition
                 isbn: book.isbn,
                 description: book.description,
                 shelf: book.shelf
                     ? shelvesMap[book.shelf] || book.shelf
                     : 'Non classé', // Utiliser le nom de l'étagère
+                shelfId: book.shelf, // Conserver l'ID original pour l'édition
                 publicationDate: book.date,
                 jacket: book.jacket, // Nom du fichier jacket de l'API
             }));
 
             setBooks(transformedBooks);
+            // Sauvegarder les mappings pour les réutiliser lors des updates
+            setAuthorsMap(authorsMap);
+            setShelvesMap(shelvesMap);
         } catch (err) {
             console.error('Erreur lors du chargement des livres:', err);
             setError(
@@ -134,20 +143,69 @@ const BooksPage = ({ initialSearchTerm }) => {
         }
     };
 
-    const handleUpdateBook = (updatedBook) => {
-        // TODO: Appeler l'API pour mettre à jour le livre
-        console.log('Mise à jour de livre via API à implémenter:', updatedBook);
+    const handleEditBook = (book) => {
+        setBookToEdit(book);
+        setIsEditDialogOpen(true);
+    };
 
-        // Pour l'instant, on met à jour localement
-        const updatedBooks = books.map((book) =>
-            book.id === updatedBook.id ? updatedBook : book
-        );
-        setBooks(updatedBooks);
+    const handleUpdateBook = async (updatedBookData) => {
+        try {
+            // Préparer les données pour l'API avec les IDs (la jacket n'est pas modifiable puisqu'il s'agit du lien vers le fichier, il faut passer par un autre endpoint pour changer la couverture)
+            const bookDataForApi = {
+                title: updatedBookData.title,
+                author: updatedBookData.authorId, // API attend 'author' avec l'ID
+                isbn: updatedBookData.isbn,
+                description: updatedBookData.description,
+                date: updatedBookData.publicationDate || null, // Utiliser null si pas de date
+                shelf: updatedBookData.shelfId || null, // API attend 'shelf' avec l'ID ou null
+            };
 
-        toast({
-            title: 'Livre mis à jour!',
-            description: `${updatedBook.title} a été mis à jour (temporairement).`,
-        });
+            // Appeler l'API pour mettre à jour le livre
+            const response = await booksService.updateBook(
+                updatedBookData.id,
+                bookDataForApi
+            );
+            console.log('Livre mis à jour via API:', response);
+
+            // Mise à jour locale optimisée en utilisant les mappings déjà chargés
+            const updatedBooks = books.map((book) =>
+                book.id === updatedBookData.id
+                    ? {
+                          ...book,
+                          title: updatedBookData.title,
+                          isbn: updatedBookData.isbn,
+                          description: updatedBookData.description,
+                          publicationDate: updatedBookData.publicationDate,
+                          authorId: updatedBookData.authorId,
+                          shelfId: updatedBookData.shelfId,
+                          // Recalculer les noms affichés avec les mappings existants
+                          author: updatedBookData.authorId
+                              ? authorsMap[updatedBookData.authorId] ||
+                                updatedBookData.authorId
+                              : 'Auteur inconnu',
+                          shelf: updatedBookData.shelfId
+                              ? shelvesMap[updatedBookData.shelfId] ||
+                                updatedBookData.shelfId
+                              : 'Non classé',
+                      }
+                    : book
+            );
+
+            setBooks(updatedBooks);
+
+            toast({
+                title: 'Succès - Livre modifié !',
+                description: `"${updatedBookData.title}" a été modifié avec succès.`,
+                variant: 'success',
+            });
+        } catch (error) {
+            console.error('Erreur lors de la modification du livre:', error);
+            toast({
+                title: `Erreur - Impossible de modifier le livre`,
+                description: `${error.message}`,
+                variant: 'destructive',
+            });
+        }
     };
 
     const filteredBooks = books
@@ -273,6 +331,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                                     index={index}
                                     onClick={() => setSelectedBook(book)}
                                     onDelete={handleBookDelete}
+                                    onEdit={handleEditBook}
                                 />
                             </div>
                         ))
@@ -310,10 +369,24 @@ const BooksPage = ({ initialSearchTerm }) => {
                 </div>
             )}
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
-            <AddBookDialog
+            <BookDialog
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
                 onAddBook={handleAddBook}
+                mode="add"
+            />
+
+            <BookDialog
+                open={isEditDialogOpen}
+                onOpenChange={(open) => {
+                    setIsEditDialogOpen(open);
+                    if (!open) {
+                        setBookToEdit(null);
+                    }
+                }}
+                onUpdateBook={handleUpdateBook}
+                bookToEdit={bookToEdit}
+                mode="edit"
             />
             {selectedBook && (
                 <BookDetailDialog

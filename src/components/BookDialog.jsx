@@ -17,7 +17,14 @@ import { toast } from '@/components/ui/use-toast';
 import { authorsService, shelvesService } from '@/services/api';
 import BarcodeScanner from './BarcodeScanner';
 
-const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
+const BookDialog = ({
+    open,
+    onOpenChange,
+    onAddBook,
+    onUpdateBook,
+    bookToEdit = null,
+    mode = 'add', // 'add' ou 'edit'
+}) => {
     const [formData, setFormData] = useState({
         isbn: '',
         title: '',
@@ -32,6 +39,8 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     const [shelves, setShelves] = useState([]);
     const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
     const [isScannerOpen, setIsScannerOpen] = useState(false); // État pour le scanner de code-barres
+
+    const isEditMode = mode === 'edit' || bookToEdit !== null;
 
     // Options formatées pour les Combobox
     const authorOptions = useMemo(
@@ -56,14 +65,16 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                     a.label.localeCompare(b.label, 'fr', { numeric: true })
                 ), // Tri numérique naturel
         [shelves]
-    ); // Validation des champs obligatoires
+    );
+
+    // Validation des champs obligatoires
     const isFormValid =
         formData.isbn.trim() &&
         formData.title.trim() &&
         formData.authorId &&
         isDateValid; // Inclure la validation de la date
 
-    // Reset des champs quand la popup se ferme
+    // Reset des champs quand la popup se ferme ou pré-remplir en mode édition
     useEffect(() => {
         if (!open) {
             // Reset tous les champs quand la popup se ferme
@@ -77,8 +88,23 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
             });
             // Reset aussi la validation de la date
             setIsDateValid(true);
+        } else if (isEditMode && bookToEdit) {
+            // Pré-remplir avec les données du livre à modifier
+            // Conversion simple de la date depuis le format API ("1994-12-14")
+            const publicationDate = bookToEdit.publicationDate
+                ? new Date(bookToEdit.publicationDate)
+                : null;
+
+            setFormData({
+                isbn: bookToEdit.isbn || '',
+                title: bookToEdit.title || '',
+                authorId: bookToEdit.authorId?.toString() || '',
+                publicationDate: publicationDate,
+                shelfId: bookToEdit.shelfId?.toString() || '',
+                description: bookToEdit.description || '',
+            });
         }
-    }, [open]);
+    }, [open, isEditMode, bookToEdit]);
 
     // Charger les auteurs et étagères
     useEffect(() => {
@@ -123,11 +149,21 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
 
         const submissionData = {
             ...formData,
-            id: Date.now().toString(),
             publicationDate: formatDateForSubmission(formData.publicationDate),
         };
 
-        onAddBook(submissionData);
+        if (isEditMode && onUpdateBook) {
+            onUpdateBook({
+                ...submissionData,
+                id: bookToEdit.id,
+            });
+        } else if (onAddBook) {
+            onAddBook({
+                ...submissionData,
+                id: Date.now().toString(),
+            });
+        }
+
         onOpenChange(false); // Le reset se fera automatiquement via useEffect
     };
 
@@ -147,11 +183,12 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle className="main-title-text">
-                        Ajouter un livre
+                        {isEditMode ? 'Modifier un livre' : 'Ajouter un livre'}
                     </DialogTitle>
                     <DialogDescription className="sr-only">
-                        Remplissez les informations du livre à ajouter à votre
-                        bibliothèque.
+                        {isEditMode
+                            ? 'Modifiez les informations de ce livre.'
+                            : 'Remplissez les informations du livre à ajouter à votre bibliothèque.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -276,7 +313,7 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
                             disabled={!isFormValid}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Ajouter
+                            {isEditMode ? 'Modifier' : 'Ajouter'}
                         </Button>
                     </div>
                 </form>
@@ -292,4 +329,4 @@ const AddBookDialog = ({ open, onOpenChange, onAddBook }) => {
     );
 };
 
-export default AddBookDialog;
+export default BookDialog;

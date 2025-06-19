@@ -13,7 +13,7 @@ import { Button } from './ui/button';
 import { toast } from './ui/use-toast';
 import { booksService } from '../services/api';
 
-const BookCard = ({ book, index, onClick, onDelete }) => {
+const BookCard = ({ book, index, onClick, onDelete, onEdit }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -59,8 +59,9 @@ const BookCard = ({ book, index, onClick, onDelete }) => {
     };
 
     const handleEditClick = () => {
-        // TODO: Implement edit functionality
-        console.log('Edit book:', book.id);
+        if (onEdit) {
+            onEdit(book);
+        }
     };
 
     return (

@@ -72,6 +72,17 @@ export function DatePicker({
     const [value, setValue] = React.useState(formatDate(date));
     const [hasError, setHasError] = React.useState(false);
 
+    // Mettre à jour la valeur affichée quand la prop date change
+    React.useEffect(() => {
+        setValue(formatDate(date));
+        setMonth(date || new Date());
+        // Reset l'erreur quand on reçoit une nouvelle date valide
+        if (date && isValidDate(date)) {
+            setHasError(false);
+            onValidationChange?.(true);
+        }
+    }, [date, onValidationChange]);
+
     // Fonction pour valider l'input
     const validateInput = (inputValue) => {
         if (!inputValue) {
