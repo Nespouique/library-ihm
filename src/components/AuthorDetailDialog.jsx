@@ -30,6 +30,17 @@ const AuthorDetailDialog = ({
                     <DialogTitle className="main-title-text text-2xl">
                         {author.firstName} {author.lastName}
                     </DialogTitle>
+                    {/* Lien "En savoir plus" pour l'auteur */}
+                    <div className="text-left mt-2">
+                        <a
+                            href={`https://www.google.com/search?q=Auteur+${encodeURIComponent(author.firstName + ' ' + author.lastName)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-foreground underline text-sm italic transition-colors"
+                        >
+                            En savoir plus...
+                        </a>
+                    </div>
                 </DialogHeader>
 
                 <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto pr-2">

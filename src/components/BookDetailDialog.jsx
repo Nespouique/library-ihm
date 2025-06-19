@@ -68,6 +68,17 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                                     }}
                                 />
                             </div>
+                            {/* Lien "En savoir plus" */}
+                            <div className="mt-2 text-center">
+                                <a
+                                    href={`https://www.google.com/search?q=Livre+${encodeURIComponent(book.title)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-foreground underline text-sm italic transition-colors"
+                                >
+                                    En savoir plus...
+                                </a>
+                            </div>
                         </div>
 
                         {/* Champs à droite - 2/3 de la largeur */}
