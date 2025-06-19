@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Dices } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import FloatingButton from '@/components/FloatingButton';
@@ -208,6 +209,25 @@ const BooksPage = ({ initialSearchTerm }) => {
         }
     };
 
+    const handleRandomBook = () => {
+        // Utiliser les livres filtrés pour respecter la recherche actuelle
+        if (filteredBooks.length === 0) {
+            toast({
+                title: "Aucun livre disponible",
+                description: "Il n'y a aucun livre à sélectionner aléatoirement.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Sélectionner un livre aléatoire
+        const randomIndex = Math.floor(Math.random() * filteredBooks.length);
+        const randomBook = filteredBooks[randomIndex];
+
+        // Afficher le détail du livre
+        setSelectedBook(randomBook);
+    };
+
     const filteredBooks = books
         .filter(
             (book) =>
@@ -281,6 +301,9 @@ const BooksPage = ({ initialSearchTerm }) => {
                         : '/';
                     window.history.replaceState({}, '', newUrl);
                 }}
+                rightIcon={<Dices className="h-6 w-6" />}
+                onRightIconClick={handleRandomBook}
+                rightIconTitle="Livre aléatoire"
             />
             <AlphabeticalScroller onLetterClick={handleLetterScroll} />
 
