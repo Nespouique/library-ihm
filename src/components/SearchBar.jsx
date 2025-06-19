@@ -2,7 +2,14 @@ import React from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
-const SearchBar = ({ placeholder, value, onChange, rightIcon, onRightIconClick, rightIconTitle }) => {
+const SearchBar = ({
+    placeholder,
+    value,
+    onChange,
+    rightIcon,
+    onRightIconClick,
+    rightIconTitle,
+}) => {
     return (
         <div className="relative max-w-2xl mx-auto mb-12">
             <div className="relative">

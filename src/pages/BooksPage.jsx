@@ -213,9 +213,10 @@ const BooksPage = ({ initialSearchTerm }) => {
         // Utiliser les livres filtrés pour respecter la recherche actuelle
         if (filteredBooks.length === 0) {
             toast({
-                title: "Aucun livre disponible",
-                description: "Il n'y a aucun livre à sélectionner aléatoirement.",
-                variant: "destructive",
+                title: 'Aucun livre disponible',
+                description:
+                    "Il n'y a aucun livre à sélectionner aléatoirement.",
+                variant: 'destructive',
             });
             return;
         }
