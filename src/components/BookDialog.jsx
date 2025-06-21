@@ -12,9 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Combobox } from '@/components/ui/combobox';
-import { Camera } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { authorsService, shelvesService } from '@/services/api';
+import {
+    authorsService,
+    shelvesService,
+    bookMetadataService,
+} from '@/services/api';
 import BarcodeScanner from './BarcodeScanner';
 
 const BookDialog = ({
@@ -39,6 +43,7 @@ const BookDialog = ({
     const [shelves, setShelves] = useState([]);
     const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
     const [isScannerOpen, setIsScannerOpen] = useState(false); // État pour le scanner de code-barres
+    const [isLoadingBookData, setIsLoadingBookData] = useState(false); // État pour le chargement des données Google Books
 
     const isEditMode = mode === 'edit' || bookToEdit !== null;
 
@@ -126,6 +131,86 @@ const BookDialog = ({
         }
     }, [open]);
 
+    // Fonction pour rechercher automatiquement les données du livre via multiple sources
+    const searchBookByISBN = async (isbn) => {
+        if (!isbn || isbn.length < 10) return; // ISBN trop court
+
+        setIsLoadingBookData(true);
+        try {
+            const bookData = await bookMetadataService.searchByISBN(isbn);
+
+            // Pré-remplir les champs avec les données trouvées
+            setFormData((prevData) => ({
+                ...prevData,
+                title: bookData.title || prevData.title,
+                description: bookData.description || prevData.description,
+                publicationDate: bookData.publishedDate
+                    ? new Date(bookData.publishedDate)
+                    : prevData.publicationDate,
+            }));
+
+            // Chercher un auteur correspondant - utilise la version actuelle d'authors
+            if (bookData.authors && bookData.authors.length > 0) {
+                const authorName = bookData.authors[0];
+
+                // Utiliser une fonction de callback pour avoir accès aux authors actuels
+                setFormData((prevData) => {
+                    // Récupérer les authors actuels depuis le state
+                    const currentAuthors = authors; // Cette variable sera toujours à jour
+
+                    const existingAuthor = currentAuthors.find(
+                        (author) =>
+                            `${author.firstName} ${author.lastName}`.toLowerCase() ===
+                            authorName.toLowerCase()
+                    );
+
+                    if (existingAuthor) {
+                        return {
+                            ...prevData,
+                            authorId: existingAuthor.id.toString(),
+                        };
+                    } else {
+                        // L'auteur n'existe pas, on peut proposer de le créer
+                        toast({
+                            title: 'Auteur non existant',
+                            description: `"${authorName}" n'existe pas. Vous pouvez l'ajouter depuis la page Auteurs.`,
+                            variant: 'default',
+                        });
+                        return prevData;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur lors de la recherche:', error);
+            // Ne pas afficher d'erreur si c'est juste un ISBN invalide ou non trouvé
+            if (error.message !== 'Format ISBN invalide') {
+                toast({
+                    title: 'Livre non trouvé',
+                    description:
+                        'Aucune information trouvée pour cet ISBN dans les sources disponibles.',
+                    variant: 'default',
+                });
+            }
+        } finally {
+            setIsLoadingBookData(false);
+        }
+    };
+
+    // Déclencher la recherche quand l'ISBN change (avec un délai pour éviter trop d'appels)
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (
+                formData.isbn &&
+                !isEditMode &&
+                bookMetadataService.isValidISBN(formData.isbn)
+            ) {
+                searchBookByISBN(formData.isbn);
+            }
+        }, 500); // Délai de 500ms après la dernière frappe
+
+        return () => clearTimeout(timeoutId);
+    }, [formData.isbn, isEditMode]); // Plus besoin d'authors dans les dépendances
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!isFormValid) {
@@ -176,6 +261,7 @@ const BookDialog = ({
             ...formData,
             isbn: isbn,
         });
+        // La recherche automatique se déclenchera via useEffect
     };
 
     return (
@@ -207,9 +293,15 @@ const BookDialog = ({
                                     })
                                 }
                                 placeholder="ISBN du livre"
-                                className="pr-10"
+                                className="pr-20"
                                 required
                             />
+                            {/* Indicateur de chargement */}
+                            {isLoadingBookData && (
+                                <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                </div>
+                            )}
                             <Button
                                 type="button"
                                 variant="ghost"
