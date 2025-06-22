@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+    library-front:
+        image: nespouique/library-front:latest
+        container_name: library-front
+        ports:
+            - '80:80'
+        restart: unless-stopped
+        environment:
+            - VITE_API_URL=https://library-ws.example.com
