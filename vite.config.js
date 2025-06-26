@@ -5,6 +5,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [react()],
     server: {
+        host: '0.0.0.0', // Écouter sur toutes les interfaces réseau
+        port: 5173, // Port explicite
         cors: true,
         proxy: {
             '/api': {
@@ -34,4 +36,10 @@ export default defineConfig({
             ],
         },
     },
+    // Configuration PWA pour le mode plein écran
+    define: {
+        __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    },
+    // Génération du manifest pour PWA
+    publicDir: 'public',
 });

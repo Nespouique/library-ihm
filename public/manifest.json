@@ -1,0 +1,25 @@
+{
+    "name": "Library IHM",
+    "short_name": "Library",
+    "description": "Application de gestion de bibliothèque",
+    "start_url": "/",
+    "display": "fullscreen",
+    "orientation": "any",
+    "theme_color": "#000000",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "kube_icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "kube_icon@2x.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "scope": "/",
+    "categories": ["productivity", "utilities"],
+    "display_override": ["fullscreen", "standalone", "minimal-ui"]
+}
