@@ -4,7 +4,7 @@
     "description": "Application de gestion de bibliothèque",
     "start_url": "/",
     "display": "fullscreen",
-    "orientation": "landscape",
+    "orientation": "any",
     "theme_color": "#000000",
     "background_color": "#ffffff",
     "icons": [
