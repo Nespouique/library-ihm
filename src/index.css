@@ -118,7 +118,7 @@
     }
 
     .floating-button {
-        @apply fixed bottom-8 right-8 w-14 h-14 bg-primary rounded-full shadow-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center text-white z-50; /* No gradient, no scale animation */
+        @apply fixed w-14 h-14 bg-primary rounded-full shadow-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center text-white z-50; /* No gradient, no scale animation */
     }
 
     .search-glow {
