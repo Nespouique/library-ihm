@@ -98,16 +98,100 @@ library-ihm/
 └── README.md
 ```
 
-## 🛠️ Installation and Setup
+## 🛠️ Installation
 
-### Prerequisites
+### 🐳 Quick Start with Docker (Recommended)
+
+The easiest way to get started is using our pre-built Docker images that support both **AMD64** (PC) and **ARM64** (Raspberry Pi 5).
+
+#### Option 1: Complete Stack (Frontend + Backend + Database)
+
+Deploy the entire application stack with one command:
+
+```bash
+# Download the full stack docker-compose
+curl -O https://raw.githubusercontent.com/your-username/library-ihm/main/docker-compose.full.yml
+
+# Start the complete application stack
+docker-compose -f docker-compose.full.yml up -d
+
+# Services will be available at:
+# - Frontend: http://localhost (port 80)
+# - Backend API: http://localhost:3001
+# - MySQL Database: localhost:3306
+```
+
+This includes:
+
+- **Frontend** : React application (library-ihm)
+- **Backend** : Node.js API (library-ws)
+- **Database** : MySQL 8.0 with initialization
+- **Volumes** : Persistent data storage
+
+#### Option 2: Frontend Only (External Backend)
+
+If you already have a backend API running:
+
+```bash
+# Download the frontend-only docker-compose
+curl -O https://raw.githubusercontent.com/your-username/library-ihm/main/docker-compose.yml
+
+# Edit docker-compose.yml to set your API URL
+# VITE_API_URL=https://your-api-url.com
+
+# Start only the frontend
+docker-compose up -d
+
+# Access the application at http://localhost
+```
+
+#### Docker Multi-Architecture Support
+
+Our Docker images are built for multiple architectures:
+
+- **AMD64** : Standard PCs and servers
+- **ARM64** : Raspberry Pi 5, Apple Silicon Macs, ARM servers
+
+Docker automatically selects the correct architecture for your system.
+
+#### Configuration
+
+**For Complete Stack (`docker-compose.full.yml`):**
+
+- Database credentials are pre-configured
+- No additional configuration needed for local development
+
+**For Frontend Only (`docker-compose.yml`):**
+Edit the docker-compose.yml file to customize the API URL:
+
+```yaml
+environment:
+    - VITE_API_URL=https://your-api-url.com
+```
+
+#### Environment Variables (Complete Stack)
+
+| Variable       | Default                 | Description       |
+| -------------- | ----------------------- | ----------------- |
+| `VITE_API_URL` | `http://localhost:3001` | Backend API URL   |
+| `DB_HOST`      | `mysql`                 | Database hostname |
+| `DB_USER`      | `library_user`          | Database username |
+| `DB_PASSWORD`  | `SecurePassword123`     | Database password |
+| `DB_NAME`      | `library_db`            | Database name     |
+
+### 🔧 Development Setup (From Sources)
+
+For development or customization, install from sources:
+
+#### Prerequisites
 
 - **Node.js** (version 16 or higher)
 - **npm** or **yarn**
+- **Backend API** : [Library Web Service](https://github.com/Nespouique/library-ws) running
 
-### Full Stack Setup
+#### Full Stack Setup
 
-#### 1. **Backend API Setup** (Required)
+##### 1. **Backend API Setup** (Required)
 
 ```bash
 # Clone and setup the backend API first
@@ -124,7 +208,7 @@ npm run dev
 # API will be available at http://localhost:3000
 ```
 
-#### 2. **Frontend Interface Setup**
+##### 2. **Frontend Interface Setup**
 
 ```bash
 # Clone the frontend interface
@@ -140,7 +224,7 @@ npm run dev
 # Access the application at http://localhost:5173
 ```
 
-#### 3. **API Integration**
+##### 3. **API Integration**
 
 The frontend is configured to communicate with the backend API:
 
@@ -148,7 +232,7 @@ The frontend is configured to communicate with the backend API:
 - **Endpoints** : `/books`, `/authors`, `/shelves`
 - **Documentation** : Available at `http://localhost:3000/api-docs`
 
-### Available Scripts
+#### Available Scripts
 
 ```bash
 # Development with hot reload

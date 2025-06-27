@@ -1,6 +1,6 @@
 {
-    "name": "Library IHM",
-    "short_name": "Library",
+    "name": "Kubothèque",
+    "short_name": "Kubothèque",
     "description": "Application de gestion de bibliothèque",
     "start_url": "/",
     "display": "fullscreen",

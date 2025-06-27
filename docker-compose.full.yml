@@ -1,0 +1,90 @@
+# Docker Compose pour le stack complet Library Management System
+# Inclut le frontend (library-ihm) + backend (library-ws) + base de données MySQL
+
+version: '3.8'
+
+services:
+    # Frontend - Interface utilisateur
+    library-front:
+        image: nespouique/library-front:latest
+        container_name: library-front
+        ports:
+            - '80:80'
+        environment:
+            # Pointe vers le backend dans le même réseau Docker
+            - VITE_API_URL=http://localhost:3001
+        depends_on:
+            - library-ws
+        restart: unless-stopped
+        networks:
+            - library-network
+
+    # Backend - API Web Service
+    library-ws:
+        image: nespouique/library-ws:latest
+        container_name: library-ws-app
+        ports:
+            - '3001:3000'
+        environment:
+            - DB_HOST=mysql
+            - DB_PORT=3306
+            - DB_USER=library_user
+            - DB_PASSWORD=SecurePassword123
+            - DB_NAME=library_db
+            - NODE_ENV=production
+            - PORT=3000
+            - LIST_PER_PAGE=10
+        depends_on:
+            mysql:
+                condition: service_healthy
+        volumes:
+            - uploads_data:/app/uploads
+        restart: unless-stopped
+        networks:
+            - library-network
+
+    # Base de données MySQL
+    mysql:
+        image: mysql:8.0
+        container_name: library-ws-mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD=RootPassword123
+            - MYSQL_DATABASE=library_db
+            - MYSQL_USER=library_user
+            - MYSQL_PASSWORD=SecurePassword123
+        ports:
+            - '3306:3306'
+        volumes:
+            - mysql_data:/var/lib/mysql
+            # Utilisation du script d'initalisation pour générer les tables et la base
+            - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'mysqladmin',
+                    'ping',
+                    '-h',
+                    'localhost',
+                    '-u',
+                    'root',
+                    '-pRootPassword123',
+                ]
+            timeout: 20s
+            retries: 10
+            interval: 10s
+            start_period: 40s
+        restart: unless-stopped
+        networks:
+            - library-network
+        command: --default-authentication-plugin=mysql_native_password --innodb-buffer-pool-size=128M
+
+volumes:
+    mysql_data:
+        driver: local
+    uploads_data:
+        driver: local
+
+networks:
+    library-network:
+        driver: bridge
