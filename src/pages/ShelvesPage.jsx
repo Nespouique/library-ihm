@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import SearchBar from '@/components/SearchBar';
 import ShelfCard from '@/components/ShelfCard';
 import FloatingButton from '@/components/FloatingButton';
+import FullscreenToggle from '@/components/FullscreenToggle';
 import ShelfDialog from '@/components/ShelfDialog';
 import ShelfDetailDialog from '@/components/ShelfDetailDialog';
 import { toast } from '@/components/ui/use-toast';
@@ -338,6 +339,8 @@ const ShelvesPage = () => {
             )}
 
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
+
+            <FullscreenToggle />
 
             <ShelfDialog
                 open={isAddDialogOpen}

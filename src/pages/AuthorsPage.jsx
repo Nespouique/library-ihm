@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchBar from '@/components/SearchBar';
 import AuthorCard from '@/components/AuthorCard';
 import FloatingButton from '@/components/FloatingButton';
+import FullscreenToggle from '@/components/FullscreenToggle';
 import AuthorDialog from '@/components/AuthorDialog';
 import AuthorDetailDialog from '@/components/AuthorDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
@@ -385,6 +386,9 @@ const AuthorsPage = () => {
             )}
 
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
+
+            <FullscreenToggle />
+
             <AuthorDialog
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}

@@ -58,7 +58,6 @@ function App() {
             <div className="min-h-screen">
                 <AppContent />
                 <Toaster />
-                <FullscreenToggle />
             </div>
         </Router>
     );

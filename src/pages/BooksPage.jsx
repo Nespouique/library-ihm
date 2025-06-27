@@ -5,6 +5,7 @@ import { Dices } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
 import FloatingButton from '@/components/FloatingButton';
+import FullscreenToggle from '@/components/FullscreenToggle';
 import BookDialog from '@/components/BookDialog';
 import BookDetailDialog from '@/components/BookDetailDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
@@ -393,6 +394,9 @@ const BooksPage = ({ initialSearchTerm }) => {
                 </div>
             )}
             <FloatingButton onClick={() => setIsAddDialogOpen(true)} />
+
+            <FullscreenToggle />
+
             <BookDialog
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
