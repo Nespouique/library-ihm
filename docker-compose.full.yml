@@ -11,8 +11,7 @@ services:
         ports:
             - '80:80'
         environment:
-            # Pointe vers le backend dans le même réseau Docker
-            - VITE_API_URL=http://localhost:3001
+            - VITE_API_URL=http://localhost:3000
         depends_on:
             - library-ws
         restart: unless-stopped
@@ -24,7 +23,7 @@ services:
         image: nespouique/library-ws:latest
         container_name: library-ws-app
         ports:
-            - '3001:3000'
+            - '3000:3000'
         environment:
             - DB_HOST=mysql
             - DB_PORT=3306
@@ -56,8 +55,6 @@ services:
             - '3306:3306'
         volumes:
             - mysql_data:/var/lib/mysql
-            # Utilisation du script d'initalisation pour générer les tables et la base
-            - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
         healthcheck:
             test:
                 [
