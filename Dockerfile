@@ -1,9 +1,6 @@
 # Multi-stage build pour optimiser la taille de l'image finale
 FROM node:18-alpine AS builder
 
-# Arguments de build pour les variables d'environnement
-ARG VITE_API_URL
-
 # Définir le répertoire de travail
 WORKDIR /app
 
@@ -15,9 +12,6 @@ RUN npm ci --legacy-peer-deps
 
 # Copier le code source
 COPY . .
-
-# Créer le fichier .env avec les variables d'environnement de build
-RUN echo "VITE_API_URL=${VITE_API_URL}" > .env
 
 # Construire l'application avec les variables d'environnement
 RUN npm run build

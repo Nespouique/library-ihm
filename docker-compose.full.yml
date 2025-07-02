@@ -11,7 +11,8 @@ services:
         ports:
             - '80:80'
         environment:
-            - NGINX_API_URL=http://library-ws:3000
+            - NGINX_API_URL=http://library-ws:3000 # URL complète
+            - NGINX_API_HOST=library-ws:3000 # Host avec port
         depends_on:
             - library-ws
         restart: unless-stopped

@@ -8,4 +8,5 @@ services:
             - '80:80'
         restart: unless-stopped
         environment:
-            - VITE_API_URL=https://library-ws.example.com
+            - NGINX_API_URL=https://library-ws.example.com # URL complète
+            - NGINX_API_HOST=library-ws.example.com # Host sans port
