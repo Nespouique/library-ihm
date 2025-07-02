@@ -11,7 +11,7 @@ services:
         ports:
             - '80:80'
         environment:
-            - VITE_API_URL=http://localhost:3000
+            - NGINX_API_URL=http://library-ws:3000
         depends_on:
             - library-ws
         restart: unless-stopped
