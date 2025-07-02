@@ -8,6 +8,14 @@ export default defineConfig({
         host: '0.0.0.0', // Écouter sur toutes les interfaces réseau
         port: 5173, // Port explicite
         cors: true,
+        proxy: {
+            '/api': {
+                target: process.env.VITE_API_URL,
+                changeOrigin: true,
+                secure: false,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
         headers: {
             'Cross-Origin-Embedder-Policy': 'credentialless',
         },
