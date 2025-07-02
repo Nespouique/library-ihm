@@ -1,5 +1,5 @@
 // Configuration de base pour l'API
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const GOOGLE_BOOKS_BASE_URL = 'https://www.googleapis.com/books/v1';
 const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org';
 

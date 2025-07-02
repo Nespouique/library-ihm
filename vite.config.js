@@ -8,13 +8,6 @@ export default defineConfig({
         host: '0.0.0.0', // Écouter sur toutes les interfaces réseau
         port: 5173, // Port explicite
         cors: true,
-        proxy: {
-            '/api': {
-                target: 'http://localhost:3000',
-                changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, ''),
-            },
-        },
         headers: {
             'Cross-Origin-Embedder-Policy': 'credentialless',
         },
