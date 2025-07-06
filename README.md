@@ -256,6 +256,19 @@ npm run quality:fix       # Auto-fix both lint and format issues
 npm run validate          # Quality check + build (production ready)
 ```
 
+#### Updating HTML5 custom
+
+```bash
+# Cleaning cache
+npm cache clean --force
+
+# Making sure new version is published
+npm view html5-qrcode-nespouique versions
+
+# Updating
+npm install html5-qrcode-nespouique@X.X.X --legacy-peer-deps
+```
+
 ## 🎨 User Interface
 
 ### Design System
