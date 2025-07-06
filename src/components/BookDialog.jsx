@@ -119,11 +119,11 @@ const BookDialog = ({
         const loadData = async () => {
             try {
                 const [authorsRes, shelvesRes] = await Promise.all([
-                    authorsService.getAuthors(1),
-                    shelvesService.getShelves(1),
+                    authorsService.getAuthors(),
+                    shelvesService.getShelves(),
                 ]);
-                setAuthors(authorsRes.data || []);
-                setShelves(shelvesRes.data || []);
+                setAuthors(authorsRes || []);
+                setShelves(shelvesRes || []);
             } catch (error) {
                 console.error('Erreur lors du chargement des données:', error);
             }

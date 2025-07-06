@@ -4,6 +4,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,10 @@ const AuthorDetailDialog = ({
                     <DialogTitle className="main-title-text text-2xl">
                         {author.firstName} {author.lastName}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Détails de l'auteur et liste des livres associés dans
+                        votre bibliothèque.
+                    </DialogDescription>
                     {/* Lien "En savoir plus" pour l'auteur */}
                     <div className="text-left mt-2">
                         <a

@@ -26,7 +26,7 @@ const AuthorsPage = () => {
 
     // Fonction réutilisable pour trier les auteurs par nom (Nom, Prénom)
     const sortAuthors = (authorsArray) => {
-        return authorsArray.sort((a, b) => {
+        return [...authorsArray].sort((a, b) => {
             const nameA = `${a.lastName} ${a.firstName}`.toLowerCase().trim();
             const nameB = `${b.lastName} ${b.firstName}`.toLowerCase().trim();
             return nameA.localeCompare(nameB);
@@ -42,7 +42,7 @@ const AuthorsPage = () => {
             const response = await authorsService.getAuthors(1);
 
             // Transformer les données API vers le format attendu par l'interface
-            const transformedAuthors = response.data.map((author) => {
+            const transformedAuthors = response.map((author) => {
                 // Calculer le nombre de livres pour cet auteur
                 const authorBookCount = booksData.filter(
                     (book) => book.author === author.id
@@ -74,7 +74,7 @@ const AuthorsPage = () => {
         try {
             const response = await booksService.getBooks(1);
             // Transformer les données API vers le format attendu par l'interface
-            const transformedBooks = response.data.map((book) => ({
+            const transformedBooks = response.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: book.author,
@@ -148,16 +148,9 @@ const AuthorsPage = () => {
                 await authorsService.createAuthor(normalizedAuthor);
             console.log('Auteur créé via API:', response);
 
-            // Ajouter l'auteur à la liste locale avec le bon ID de l'API et les noms normalisés
-            const authorFromApi = {
-                id: response.id || response.data?.id, // L'API retourne l'ID de l'auteur créé
-                firstName: normalizedAuthor.firstName, // Utiliser le prénom normalisé
-                lastName: normalizedAuthor.lastName, // Utiliser le nom normalisé
-                bookCount: 0, // Nouvel auteur, pas de livres pour l'instant
-            };
-
-            const updatedAuthors = sortAuthors([...authors, authorFromApi]);
-            setAuthors(updatedAuthors);
+            // Recharger la liste des auteurs pour avoir les données complètes
+            const booksData = await loadBooks();
+            await loadAuthors(booksData);
 
             toast({
                 title: 'Succès - Auteur ajouté !',
@@ -194,18 +187,9 @@ const AuthorsPage = () => {
             );
             console.log('Auteur mis à jour via API:', response);
 
-            // Mettre à jour l'auteur dans la liste locale
-            const updatedAuthors = authors.map((author) =>
-                author.id === updatedAuthorData.id
-                    ? {
-                          ...author,
-                          firstName: normalizedAuthor.firstName,
-                          lastName: normalizedAuthor.lastName,
-                      }
-                    : author
-            );
-
-            setAuthors(sortAuthors(updatedAuthors));
+            // Recharger la liste des auteurs pour avoir les données complètes
+            const booksData = await loadBooks();
+            await loadAuthors(booksData);
 
             toast({
                 title: 'Succès - Auteur modifié !',
@@ -225,12 +209,10 @@ const AuthorsPage = () => {
         }
     };
 
-    const filteredAuthors = sortAuthors(
-        authors.filter((author) =>
-            `${author.firstName} ${author.lastName}`
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
-        )
+    const filteredAuthors = authors.filter((author) =>
+        `${author.firstName} ${author.lastName}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
     );
 
     const handleLetterScroll = (char) => {

@@ -31,12 +31,12 @@ const ShelvesPage = () => {
 
             // Créer un mapping ID auteur -> nom complet auteur
             const authorsMap = {};
-            authorsResponse.data.forEach((author) => {
+            authorsResponse.forEach((author) => {
                 authorsMap[author.id] =
                     `${author.firstName} ${author.lastName}`;
             });
 
-            const transformedBooks = booksResponse.data.map((book) => ({
+            const transformedBooks = booksResponse.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: book.author
@@ -68,7 +68,7 @@ const ShelvesPage = () => {
             const response = await shelvesService.getShelves(1);
 
             // Transformer les données API vers le format attendu par l'interface
-            const transformedShelves = response.data.map((shelf) => {
+            const transformedShelves = response.map((shelf) => {
                 // Calculer le nombre de livres pour cette étagère
                 const shelfBookCount = booksData.filter(
                     (book) => book.shelf === shelf.id
@@ -124,7 +124,7 @@ const ShelvesPage = () => {
 
     // Fonction de tri personnalisée pour les étagères
     const sortShelves = (shelves) => {
-        return shelves.sort((a, b) => {
+        return [...shelves].sort((a, b) => {
             // "Non classé" toujours en premier
             if (a.id === 'unclassified') return -1;
             if (b.id === 'unclassified') return 1;
@@ -151,15 +151,9 @@ const ShelvesPage = () => {
             const response = await shelvesService.createShelf(newShelf);
             console.log('Étagère créée via API:', response);
 
-            // Ajouter l'étagère à la liste locale avec le bon ID et nom de l'API
-            const shelfFromApi = {
-                id: response.id || response.data?.id, // L'API retourne l'ID de l'étagère créée
-                name: response.name || response.data?.name || newShelf.name, // Utiliser le nom confirmé par l'API
-                bookCount: 0, // Nouvelle étagère, pas de livres pour l'instant
-            };
-
-            const updatedShelves = sortShelves([...shelves, shelfFromApi]);
-            setShelves(updatedShelves);
+            // Recharger la liste des étagères pour avoir les données complètes
+            const booksData = await loadBooks();
+            await loadShelves(booksData);
 
             toast({
                 title: 'Succès - Étagère ajoutée !',
@@ -192,17 +186,9 @@ const ShelvesPage = () => {
             );
             console.log('Étagère mise à jour via API:', response);
 
-            // Mettre à jour l'étagère dans la liste locale
-            const updatedShelves = shelves.map((shelf) =>
-                shelf.id === updatedShelfData.id
-                    ? {
-                          ...shelf,
-                          name: updatedShelfData.name,
-                      }
-                    : shelf
-            );
-
-            setShelves(sortShelves(updatedShelves));
+            // Recharger la liste des étagères pour avoir les données complètes
+            const booksData = await loadBooks();
+            await loadShelves(booksData);
 
             toast({
                 title: 'Succès - Étagère modifiée !',
@@ -222,10 +208,8 @@ const ShelvesPage = () => {
         }
     };
 
-    const filteredShelves = sortShelves(
-        shelves.filter((shelf) =>
-            shelf.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+    const filteredShelves = shelves.filter((shelf) =>
+        shelf.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const getShelfBooks = (shelf) => {

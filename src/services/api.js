@@ -115,8 +115,8 @@ class ApiService {
 
 // Service pour les auteurs
 export class AuthorsService extends ApiService {
-    async getAuthors(page = 1) {
-        return this.fetchJson(`/authors?page=${page}`);
+    async getAuthors() {
+        return this.fetchJson(`/authors`);
     }
 
     async getAuthor(id) {
@@ -138,8 +138,8 @@ export class AuthorsService extends ApiService {
 
 // Service pour les livres
 export class BooksService extends ApiService {
-    async getBooks(page = 1) {
-        return this.fetchJson(`/books?page=${page}`);
+    async getBooks() {
+        return this.fetchJson(`/books`);
     }
 
     async getBook(id) {
@@ -161,8 +161,8 @@ export class BooksService extends ApiService {
 
 // Service pour les étagères
 export class ShelvesService extends ApiService {
-    async getShelves(page = 1) {
-        return this.fetchJson(`/shelves?page=${page}`);
+    async getShelves() {
+        return this.fetchJson(`/shelves`);
     }
 
     async getShelf(id) {

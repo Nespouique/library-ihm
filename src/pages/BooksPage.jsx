@@ -42,19 +42,19 @@ const BooksPage = ({ initialSearchTerm }) => {
 
             // Créer un mapping ID étagère -> nom étagère
             const shelvesMap = {};
-            shelvesResponse.data.forEach((shelf) => {
+            shelvesResponse.forEach((shelf) => {
                 shelvesMap[shelf.id] = shelf.name;
             });
 
             // Créer un mapping ID auteur -> nom complet auteur
             const authorsMap = {};
-            authorsResponse.data.forEach((author) => {
+            authorsResponse.forEach((author) => {
                 authorsMap[author.id] =
                     `${author.firstName} ${author.lastName}`;
             });
 
             // Transformer les données API vers le format attendu par l'interface
-            const transformedBooks = booksResponse.data.map((book) => ({
+            const transformedBooks = booksResponse.map((book) => ({
                 id: book.id,
                 title: book.title,
                 author: book.author
