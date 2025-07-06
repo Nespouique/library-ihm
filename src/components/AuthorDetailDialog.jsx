@@ -4,11 +4,10 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { BookHeart, Users, BookOpen } from 'lucide-react';
+import { Users, BookOpen } from 'lucide-react';
 
 const AuthorDetailDialog = ({
     author,

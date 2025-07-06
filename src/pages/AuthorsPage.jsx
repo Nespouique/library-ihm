@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '@/components/SearchBar';
@@ -34,7 +34,7 @@ const AuthorsPage = () => {
     };
 
     // Charger les auteurs depuis l'API et calculer le nombre de livres
-    const loadAuthors = async (booksData = []) => {
+    const loadAuthors = useCallback(async (booksData = []) => {
         try {
             setLoading(true);
             setError(null);
@@ -67,7 +67,7 @@ const AuthorsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []); // Pas de dépendances car utilise setAuthors, setLoading, setError
 
     // Charger les livres depuis l'API
     const loadBooks = async () => {
@@ -105,7 +105,7 @@ const AuthorsPage = () => {
         };
 
         loadData();
-    }, []);
+    }, [loadAuthors]); // Ajouter loadAuthors dans les dépendances
 
     // Fonction pour supprimer un auteur de la liste locale
     const handleAuthorDelete = (deletedAuthorId) => {

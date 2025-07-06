@@ -1,4 +1,6 @@
 import prettierConfig from 'eslint-config-prettier';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 export default [
     {
@@ -83,13 +85,26 @@ export default [
     {
         // React/JSX specific configuration
         files: ['**/*.jsx', '**/*.tsx'],
+        plugins: {
+            react: reactPlugin,
+            'react-hooks': reactHooksPlugin,
+        },
         languageOptions: {
             globals: {
                 React: 'readonly',
             },
         },
+        settings: {
+            react: {
+                version: 'detect',
+            },
+        },
         rules: {
-            // React specific rules can be added here if needed
+            // React specific rules
+            'react/jsx-uses-react': 'error',
+            'react/jsx-uses-vars': 'error',
+            'react-hooks/rules-of-hooks': 'error',
+            'react-hooks/exhaustive-deps': 'warn',
         },
     },
     // Apply Prettier config to disable conflicting rules

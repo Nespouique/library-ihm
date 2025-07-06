@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import {
     Dialog,
@@ -14,45 +14,9 @@ const BarcodeScanner = ({ open, onOpenChange, onBarcodeDetected }) => {
     const [isScanning, setIsScanning] = useState(false);
     const [shouldStartScan, setShouldStartScan] = useState(false);
     const html5QrCodeScannerRef = useRef(null); // Démarrer automatiquement le scanner quand le dialog s'ouvre
-    useEffect(() => {
-        if (open && !isScanning) {
-            setIsScanning(true);
-            setShouldStartScan(true);
-        }
-    }, [open, isScanning]); // Nettoyer le scanner quand le dialog se ferme
-    useEffect(() => {
-        if (!open && html5QrCodeScannerRef.current) {
-            html5QrCodeScannerRef.current.clear().catch((error) => {
-                console.error('Erreur lors de la fermeture du scanner:', error);
-            });
-            html5QrCodeScannerRef.current = null;
-            setIsScanning(false);
-            setShouldStartScan(false);
-        }
-    }, [open]); // Démarrer le scanner quand l'élément DOM est prêt
-    useEffect(() => {
-        if (shouldStartScan && isScanning) {
-            const element = document.getElementById('barcode-scanner');
-            if (element) {
-                initializeScanner();
-            }
-        }
-    }, [shouldStartScan, isScanning]); // Nettoyer le scanner au démontage du composant
-    useEffect(() => {
-        return () => {
-            if (html5QrCodeScannerRef.current) {
-                html5QrCodeScannerRef.current.clear().catch((error) => {
-                    console.error(
-                        'Erreur lors du nettoyage du scanner:',
-                        error
-                    );
-                });
-            }
-        };
-    }, []);
 
     // Fonction pour initialiser le scanner
-    const initializeScanner = async () => {
+    const initializeScanner = useCallback(async () => {
         try {
             // Configuration du scanner
             const config = {
@@ -111,7 +75,44 @@ const BarcodeScanner = ({ open, onOpenChange, onBarcodeDetected }) => {
                 variant: 'destructive',
             });
         }
-    };
+    }, [onBarcodeDetected, onOpenChange]);
+
+    useEffect(() => {
+        if (open && !isScanning) {
+            setIsScanning(true);
+            setShouldStartScan(true);
+        }
+    }, [open, isScanning]); // Nettoyer le scanner quand le dialog se ferme
+    useEffect(() => {
+        if (!open && html5QrCodeScannerRef.current) {
+            html5QrCodeScannerRef.current.clear().catch((error) => {
+                console.error('Erreur lors de la fermeture du scanner:', error);
+            });
+            html5QrCodeScannerRef.current = null;
+            setIsScanning(false);
+            setShouldStartScan(false);
+        }
+    }, [open]); // Démarrer le scanner quand l'élément DOM est prêt
+    useEffect(() => {
+        if (shouldStartScan && isScanning) {
+            const element = document.getElementById('barcode-scanner');
+            if (element) {
+                initializeScanner();
+            }
+        }
+    }, [shouldStartScan, isScanning, initializeScanner]); // Nettoyer le scanner au démontage du composant
+    useEffect(() => {
+        return () => {
+            if (html5QrCodeScannerRef.current) {
+                html5QrCodeScannerRef.current.clear().catch((error) => {
+                    console.error(
+                        'Erreur lors du nettoyage du scanner:',
+                        error
+                    );
+                });
+            }
+        };
+    }, []);
 
     // Fonction pour arrêter le scanner
     const stopScanning = async () => {

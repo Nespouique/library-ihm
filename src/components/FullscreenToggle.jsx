@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Fullscreen } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const FullscreenToggle = () => {
@@ -59,7 +59,7 @@ const FullscreenToggle = () => {
                         type: 'spring',
                     }}
                 >
-                    <Fullscreen className="h-7 w-7" />
+                    <Maximize2 className="h-7 w-7" />
                 </motion.button>
             )}
         </div>

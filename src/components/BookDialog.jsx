@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -44,6 +44,9 @@ const BookDialog = ({
     const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
     const [isScannerOpen, setIsScannerOpen] = useState(false); // État pour le scanner de code-barres
     const [isLoadingBookData, setIsLoadingBookData] = useState(false); // État pour le chargement des données Google Books
+
+    // États pour les messages toast
+    const [toastMessage, setToastMessage] = useState(null);
 
     const isEditMode = mode === 'edit' || bookToEdit !== null;
 
@@ -131,70 +134,83 @@ const BookDialog = ({
         }
     }, [open]);
 
-    // Fonction pour rechercher automatiquement les données du livre via multiple sources
-    const searchBookByISBN = async (isbn) => {
-        if (!isbn || isbn.length < 10) return; // ISBN trop court
-
-        setIsLoadingBookData(true);
-        try {
-            const bookData = await bookMetadataService.searchByISBN(isbn);
-
-            // Pré-remplir les champs avec les données trouvées
-            setFormData((prevData) => ({
-                ...prevData,
-                title: bookData.title || prevData.title,
-                description: bookData.description || prevData.description,
-                publicationDate: bookData.publishedDate
-                    ? new Date(bookData.publishedDate)
-                    : prevData.publicationDate,
-            }));
-
-            // Chercher un auteur correspondant - utilise la version actuelle d'authors
-            if (bookData.authors && bookData.authors.length > 0) {
-                const authorName = bookData.authors[0];
-
-                // Utiliser une fonction de callback pour avoir accès aux authors actuels
-                setFormData((prevData) => {
-                    // Récupérer les authors actuels depuis le state
-                    const currentAuthors = authors; // Cette variable sera toujours à jour
-
-                    const existingAuthor = currentAuthors.find(
-                        (author) =>
-                            `${author.firstName} ${author.lastName}`.toLowerCase() ===
-                            authorName.toLowerCase()
-                    );
-
-                    if (existingAuthor) {
-                        return {
-                            ...prevData,
-                            authorId: existingAuthor.id.toString(),
-                        };
-                    } else {
-                        // L'auteur n'existe pas, on peut proposer de le créer
-                        toast({
-                            title: 'Auteur non existant',
-                            description: `"${authorName}" n'existe pas. Vous pouvez l'ajouter depuis la page Auteurs.`,
-                            variant: 'default',
-                        });
-                        return prevData;
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Erreur lors de la recherche:', error);
-            // Ne pas afficher d'erreur si c'est juste un ISBN invalide ou non trouvé
-            if (error.message !== 'Format ISBN invalide') {
-                toast({
-                    title: 'Livre non trouvé',
-                    description:
-                        'Aucune information trouvée pour cet ISBN dans les sources disponibles.',
-                    variant: 'default',
-                });
-            }
-        } finally {
-            setIsLoadingBookData(false);
+    // useEffect pour gérer les toasts
+    useEffect(() => {
+        if (toastMessage) {
+            toast(toastMessage);
+            setToastMessage(null); // Reset après affichage
         }
-    };
+    }, [toastMessage]);
+
+    // Fonction pour rechercher automatiquement les données du livre via multiple sources
+    const searchBookByISBN = useCallback(
+        async (isbn) => {
+            console.log('Recherche de livre pour ISBN:', isbn);
+            if (!isbn || isbn.length < 10) return; // ISBN trop court
+
+            setIsLoadingBookData(true);
+            try {
+                const bookData = await bookMetadataService.searchByISBN(isbn);
+
+                // Pré-remplir les champs avec les données trouvées
+                setFormData((prevData) => ({
+                    ...prevData,
+                    title: bookData.title || prevData.title,
+                    description: bookData.description || prevData.description,
+                    publicationDate: bookData.publishedDate
+                        ? new Date(bookData.publishedDate)
+                        : prevData.publicationDate,
+                }));
+
+                // Chercher un auteur correspondant - utilise la version actuelle d'authors
+                if (bookData.authors && bookData.authors.length > 0) {
+                    const authorName = bookData.authors[0];
+
+                    // Utiliser une fonction de callback pour avoir accès aux authors actuels
+                    setFormData((prevData) => {
+                        // Récupérer les authors actuels depuis le state
+                        const currentAuthors = authors; // Cette variable sera toujours à jour
+
+                        const existingAuthor = currentAuthors.find(
+                            (author) =>
+                                `${author.firstName} ${author.lastName}`.toLowerCase() ===
+                                authorName.toLowerCase()
+                        );
+
+                        if (existingAuthor) {
+                            return {
+                                ...prevData,
+                                authorId: existingAuthor.id.toString(),
+                            };
+                        } else {
+                            // L'auteur n'existe pas, programmer un toast
+                            setToastMessage({
+                                title: 'Auteur non existant',
+                                description: `"${authorName}" n'existe pas. Vous pouvez l'ajouter depuis la page Auteurs.`,
+                                variant: 'default',
+                            });
+                            return prevData;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur lors de la recherche:', error);
+                // Ne pas afficher d'erreur si c'est juste un ISBN invalide ou non trouvé
+                if (error.message !== 'Format ISBN invalide') {
+                    // Programmer un toast pour l'erreur
+                    setToastMessage({
+                        title: 'Livre non trouvé',
+                        description:
+                            'Aucune information trouvée pour cet ISBN dans les sources disponibles.',
+                        variant: 'default',
+                    });
+                }
+            } finally {
+                setIsLoadingBookData(false);
+            }
+        },
+        [authors]
+    );
 
     // Déclencher la recherche quand l'ISBN change (avec un délai pour éviter trop d'appels)
     useEffect(() => {
@@ -209,7 +225,7 @@ const BookDialog = ({
         }, 500); // Délai de 500ms après la dernière frappe
 
         return () => clearTimeout(timeoutId);
-    }, [formData.isbn, isEditMode]); // Plus besoin d'authors dans les dépendances
+    }, [formData.isbn, isEditMode, searchBookByISBN]);
 
     const handleSubmit = (e) => {
         e.preventDefault();

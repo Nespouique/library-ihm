@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Dices } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import BookCard from '@/components/BookCard';
@@ -23,7 +23,6 @@ const BooksPage = ({ initialSearchTerm }) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [authorsMap, setAuthorsMap] = useState({});
     const [shelvesMap, setShelvesMap] = useState({});
-    const navigate = useNavigate();
     const location = useLocation();
     const bookRefs = useRef({});
 
@@ -125,7 +124,7 @@ const BooksPage = ({ initialSearchTerm }) => {
 
             // Appeler l'API pour créer le livre
             const response = await booksService.createBook(bookDataForApi);
-            //console.log('Livre créé via API:', response);
+            console.log('Livre créé via API:', response);
 
             // Recharger la liste des livres pour avoir les données complètes
             await loadBooks();

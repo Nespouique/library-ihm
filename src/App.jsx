@@ -10,7 +10,6 @@ import Layout from '@/components/Layout';
 import BooksPage from '@/pages/BooksPage';
 import AuthorsPage from '@/pages/AuthorsPage';
 import ShelvesPage from '@/pages/ShelvesPage';
-import FullscreenToggle from '@/components/FullscreenToggle';
 import { Toaster } from '@/components/ui/toaster';
 
 function ScrollToTop() {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import SearchBar from '@/components/SearchBar';
 import ShelfCard from '@/components/ShelfCard';
@@ -60,7 +60,7 @@ const ShelvesPage = () => {
     };
 
     // Charger les étagères depuis l'API et calculer le nombre de livres
-    const loadShelves = async (booksData = []) => {
+    const loadShelves = useCallback(async (booksData = []) => {
         try {
             setLoading(true);
             setError(null);
@@ -102,7 +102,7 @@ const ShelvesPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []); // Pas de dépendances car utilise setShelves, setLoading, setError
 
     useEffect(() => {
         const loadData = async () => {
@@ -113,7 +113,7 @@ const ShelvesPage = () => {
         };
 
         loadData();
-    }, []);
+    }, [loadShelves]); // Ajouter loadShelves dans les dépendances
 
     // Fonction pour supprimer une étagère de la liste locale
     const handleShelfDelete = (deletedShelfId) => {

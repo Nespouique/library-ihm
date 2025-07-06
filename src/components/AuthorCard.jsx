@@ -30,6 +30,7 @@ const AuthorCard = ({ author, index, onClick, onDelete, onEdit }) => {
             toast({
                 title: 'Auteur supprimé',
                 description: `L'auteur "${fullName}" a été supprimé avec succès.`,
+                variant: 'success',
             });
 
             setShowDeleteConfirm(false);

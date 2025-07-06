@@ -8,7 +8,7 @@ const AlphabeticalScroller = ({ onLetterClick }) => {
     return (
         <div className="alphabet-scroller-horizontal">
             <div className="flex justify-center gap-0.5 p-2 overflow-x-auto">
-                {allButtons.map((char, index) => (
+                {allButtons.map((char) => (
                     <motion.button
                         key={char}
                         className="alphabet-letter-btn"

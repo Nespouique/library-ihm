@@ -12,7 +12,6 @@ import {
     CalendarDays,
     ChevronDown,
     ChevronUp,
-    Image as ImageIcon,
     Info,
     SquareLibrary,
     Siren,
@@ -25,7 +24,7 @@ const getImageUrl = (book, size = 'small') => {
     return `/api/books/${book.id}/jacket/${size}`;
 };
 
-const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
+const BookDetailDialog = ({ book, open, onOpenChange }) => {
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
     if (!book) return null;
@@ -39,7 +38,7 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                 day: 'numeric',
             });
         } catch (error) {
-            return 'Date invalide';
+            return 'Date invalide :', error.message;
         }
     };
 

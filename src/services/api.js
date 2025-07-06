@@ -77,6 +77,10 @@ class ApiService {
         } catch (e) {
             // body vide ou non json
             data = null;
+            console.log(
+                `Erreur lors de la lecture du JSON pour ${endpoint}:`,
+                e
+            );
         }
 
         if (!response.ok) {
@@ -294,7 +298,8 @@ export class OpenLibraryService {
                 },
             };
         } catch (error) {
-            console.error('Erreur lors de la recherche Open Library:', error);
+            // Ne pas logger comme une erreur si c'est juste une absence de résultat
+            // L'erreur sera gérée proprement au niveau supérieur
             throw error;
         }
     }
