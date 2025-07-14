@@ -9,6 +9,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     CalendarDays,
     ChevronDown,
@@ -19,17 +20,24 @@ import {
     BookOpen,
 } from 'lucide-react';
 import { areKubesAvailable } from '@/lib/kubeUtils';
-
-// Helper function to get jacket image URL from API
-const getImageUrl = (book, size = 'small') => {
-    if (!book?.id || !book?.jacket) return '/placeholder-book.svg';
-    return `/api/books/${book.id}/jacket/${size}`;
-};
+import { useTheme } from '@/hooks/useTheme';
 
 const BookDetailDialog = ({ book, open, onOpenChange }) => {
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [kubesAvailable, setKubesAvailable] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const isDark = useTheme();
     const navigate = useNavigate();
+
+    // Helper function to get jacket image URL from API
+    const getImageUrl = (book, size = 'small') => {
+        if (!book?.id || !book?.jacket) {
+            return isDark
+                ? '/dark-placeholder-book.svg'
+                : '/light-placeholder-book.svg';
+        }
+        return `/api/books/${book.id}/jacket/${size}`;
+    };
 
     // Vérifier la disponibilité des kubes quand le dialog s'ouvre
     useEffect(() => {
@@ -37,6 +45,13 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
             areKubesAvailable().then(setKubesAvailable);
         }
     }, [open]);
+
+    // Réinitialiser l'état de chargement de l'image quand le livre change
+    useEffect(() => {
+        if (book?.id) {
+            setImageLoaded(false);
+        }
+    }, [book?.id]);
 
     if (!book) return null;
 
@@ -74,13 +89,30 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
                     <div className="flex gap-4">
                         {/* Image à gauche - largeur automatique */}
                         <div className="flex-shrink-0 w-auto">
-                            <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                            <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden w-[117px] h-44 flex items-center justify-center">
+                                {!imageLoaded && (
+                                    <Skeleton className="w-full h-full rounded-xl" />
+                                )}
                                 <img
                                     src={getImageUrl(book, 'small')}
                                     alt={`Couverture de ${book.title}`}
-                                    className="h-auto max-h-44 object-contain rounded-lg"
+                                    className={`w-full h-full object-contain rounded-xl ${!imageLoaded ? 'hidden' : ''}`}
+                                    onLoad={() => setImageLoaded(true)}
                                     onError={(e) => {
-                                        e.target.src = '/placeholder-book.svg';
+                                        // Changer la source vers le placeholder approprié selon le thème
+                                        const placeholderPath = isDark
+                                            ? '/dark-placeholder-book.svg'
+                                            : '/light-placeholder-book.svg';
+
+                                        if (
+                                            e.target.src.includes(
+                                                'placeholder-book.svg'
+                                            )
+                                        ) {
+                                            setImageLoaded(true);
+                                        } else {
+                                            e.target.src = placeholderPath;
+                                        }
                                     }}
                                 />
                             </div>
