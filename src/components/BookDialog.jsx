@@ -44,6 +44,7 @@ const BookDialog = ({
     const [isDateValid, setIsDateValid] = useState(true); // État pour la validation de la date
     const [isScannerOpen, setIsScannerOpen] = useState(false); // État pour le scanner de code-barres
     const [isLoadingBookData, setIsLoadingBookData] = useState(false); // État pour le chargement des données Google Books
+    const [isCreatingBook, setIsCreatingBook] = useState(false); // État pour la création du livre + upload jaquette
 
     // États pour les messages toast
     const [toastMessage, setToastMessage] = useState(null);
@@ -94,8 +95,9 @@ const BookDialog = ({
                 shelfId: '',
                 description: '',
             });
-            // Reset aussi la validation de la date
+            // Reset aussi la validation de la date et l'état de création
             setIsDateValid(true);
+            setIsCreatingBook(false);
         } else if (isEditMode && bookToEdit) {
             // Pré-remplir avec les données du livre à modifier
             // Conversion simple de la date depuis le format API ("1994-12-14")
@@ -227,7 +229,7 @@ const BookDialog = ({
         return () => clearTimeout(timeoutId);
     }, [formData.isbn, isEditMode, searchBookByISBN]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isFormValid) {
             toast({
@@ -258,14 +260,20 @@ const BookDialog = ({
                 ...submissionData,
                 id: bookToEdit.id,
             });
+            onOpenChange(false); // Fermer immédiatement pour les modifications
         } else if (onAddBook) {
-            onAddBook({
-                ...submissionData,
-                id: Date.now().toString(),
-            });
-        }
+            // Pour la création, passer la fonction setLoading et attendre la fin
+            await onAddBook(
+                {
+                    ...submissionData,
+                    id: Date.now().toString(),
+                },
+                setIsCreatingBook
+            );
 
-        onOpenChange(false); // Le reset se fera automatiquement via useEffect
+            // Fermer le dialog seulement après succès complet
+            onOpenChange(false);
+        }
     };
 
     const handleScanBarcode = () => {
@@ -311,6 +319,7 @@ const BookDialog = ({
                                 placeholder="ISBN du livre"
                                 className="pr-20"
                                 required
+                                disabled={isCreatingBook}
                             />
                             {/* Indicateur de chargement */}
                             {isLoadingBookData && (
@@ -325,6 +334,7 @@ const BookDialog = ({
                                 onClick={handleScanBarcode}
                                 className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
                                 aria-label="Scanner le code-barres"
+                                disabled={isCreatingBook}
                             >
                                 <Camera className="h-4 w-4 opacity-50" />
                             </Button>
@@ -344,6 +354,7 @@ const BookDialog = ({
                             }
                             placeholder="Titre du livre"
                             required
+                            disabled={isCreatingBook}
                         />
                     </div>
                     {/* 3. Auteur - obligatoire, toute la largeur avec combobox */}
@@ -358,6 +369,7 @@ const BookDialog = ({
                             placeholder="Choisir un auteur..."
                             searchPlaceholder="Rechercher un auteur..."
                             emptyMessage="Aucun auteur trouvé."
+                            disabled={isCreatingBook}
                         />
                     </div>{' '}
                     {/* 4. Date de parution + Étagère - non obligatoires, moitié largeur chacun */}
@@ -376,6 +388,7 @@ const BookDialog = ({
                                 }
                                 onValidationChange={setIsDateValid}
                                 id="publicationDate"
+                                disabled={isCreatingBook}
                             />
                         </div>
                         <div className="space-y-1">
@@ -389,6 +402,7 @@ const BookDialog = ({
                                 placeholder="Choisir une étagère..."
                                 searchPlaceholder="Rechercher une étagère..."
                                 emptyMessage="Aucune étagère trouvée."
+                                disabled={isCreatingBook}
                             />
                         </div>
                     </div>
@@ -406,6 +420,7 @@ const BookDialog = ({
                             }
                             placeholder="Description du livre"
                             rows={3}
+                            disabled={isCreatingBook}
                         />
                     </div>
                     <div className="flex justify-end space-x-2 pt-3">
@@ -413,15 +428,27 @@ const BookDialog = ({
                             type="button"
                             variant="outline"
                             onClick={() => onOpenChange(false)}
+                            disabled={isCreatingBook}
                         >
                             Annuler
                         </Button>
                         <Button
                             type="submit"
-                            disabled={!isFormValid}
+                            disabled={!isFormValid || isCreatingBook}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isEditMode ? 'Modifier' : 'Ajouter'}
+                            {isCreatingBook ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    {isEditMode
+                                        ? 'Modification...'
+                                        : 'Création en cours...'}
+                                </>
+                            ) : isEditMode ? (
+                                'Modifier'
+                            ) : (
+                                'Ajouter'
+                            )}
                         </Button>
                     </div>
                 </form>

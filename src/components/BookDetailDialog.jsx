@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Dialog,
@@ -18,14 +18,21 @@ import {
     SquareLibrary,
     Siren,
     BookOpen,
+    Camera,
+    Loader2,
 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 import { areKubesAvailable } from '@/lib/kubeUtils';
 import { useTheme } from '@/hooks/useTheme';
+import { booksService } from '@/services/api';
 
-const BookDetailDialog = ({ book, open, onOpenChange }) => {
+const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [kubesAvailable, setKubesAvailable] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [isUploadingJacket, setIsUploadingJacket] = useState(false);
+    const [imageTimestamp, setImageTimestamp] = useState(Date.now()); // Pour forcer le rechargement
+    const fileInputRef = useRef(null);
     const isDark = useTheme();
     const navigate = useNavigate();
 
@@ -36,7 +43,8 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
                 ? '/dark-placeholder-book.svg'
                 : '/light-placeholder-book.svg';
         }
-        return `/api/books/${book.id}/jacket/${size}`;
+        // Ajouter un timestamp pour forcer le rechargement après upload
+        return `/api/books/${book.id}/jacket/${size}?t=${imageTimestamp}`;
     };
 
     // Vérifier la disponibilité des kubes quand le dialog s'ouvre
@@ -74,6 +82,77 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
         navigate(`/kubes?highlight=${book.shelfLocation}`);
     };
 
+    // Fonction pour ouvrir le sélecteur de fichier
+    const handleCameraClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    // Fonction pour gérer l'upload de la nouvelle jaquette
+    const handleFileChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Vérifier le type de fichier
+        if (!file.type.startsWith('image/')) {
+            toast({
+                title: 'Erreur',
+                description: 'Veuillez sélectionner un fichier image.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        // Vérifier la taille du fichier (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            toast({
+                title: 'Erreur',
+                description:
+                    'Le fichier est trop volumineux. Taille maximum : 10MB.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setIsUploadingJacket(true);
+
+        try {
+            // Uploader l'image via l'API
+            await booksService.uploadJacket(book.id, file);
+
+            // Mettre à jour le timestamp pour forcer le rechargement de l'image
+            setImageTimestamp(Date.now());
+
+            // Forcer le rechargement de l'image en modifiant sa clé
+            setImageLoaded(false);
+
+            // Notification de succès
+            toast({
+                title: 'Succès',
+                description: 'La couverture a été mise à jour avec succès.',
+                variant: 'success',
+            });
+
+            // Optionnel : callback pour informer le parent qu'il faut recharger les données
+            if (onUpdateBook) {
+                onUpdateBook(book);
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'upload de la jaquette:", error);
+            toast({
+                title: 'Erreur',
+                description:
+                    'Impossible de mettre à jour la couverture. Veuillez réessayer.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsUploadingJacket(false);
+            // Reset l'input file
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-xl">
@@ -89,7 +168,7 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
                     <div className="flex gap-4">
                         {/* Image à gauche - largeur automatique */}
                         <div className="flex-shrink-0 w-auto">
-                            <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden w-[117px] h-44 flex items-center justify-center">
+                            <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden w-[117px] h-44 flex items-center justify-center relative group">
                                 {!imageLoaded && (
                                     <Skeleton className="w-full h-full rounded-xl" />
                                 )}
@@ -114,6 +193,29 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
                                             e.target.src = placeholderPath;
                                         }
                                     }}
+                                />
+
+                                {/* Bouton caméra flottant */}
+                                <button
+                                    onClick={handleCameraClick}
+                                    disabled={isUploadingJacket}
+                                    className="absolute bottom-2 right-2 bg-black/70 hover:bg-black/80 text-white p-2 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Changer la couverture"
+                                >
+                                    {isUploadingJacket ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Camera className="h-4 w-4" />
+                                    )}
+                                </button>
+
+                                {/* Input file caché */}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="hidden"
                                 />
                             </div>
                             {/* Lien "En savoir plus" */}

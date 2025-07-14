@@ -110,7 +110,7 @@ const BooksPage = ({ initialSearchTerm }) => {
         );
     };
 
-    const handleAddBook = async (newBook) => {
+    const handleAddBook = async (newBook, setLoading) => {
         try {
             // Déboguer les données reçues
             //console.log('Données reçues du formulaire:', newBook);
@@ -128,16 +128,27 @@ const BooksPage = ({ initialSearchTerm }) => {
 
             //console.log("Données envoyées à l'API:", bookDataForApi);
 
-            // Appeler l'API pour créer le livre
-            const response = await booksService.createBook(bookDataForApi);
-            console.log('Livre créé via API:', response);
+            // Activer le loading
+            if (setLoading) setLoading(true);
 
-            // Recharger la liste des livres pour avoir les données complètes
+            // Appeler l'API pour créer le livre avec téléchargement automatique de jaquette
+            const result =
+                await booksService.createBookWithAutoJacket(bookDataForApi);
+            console.log('Livre créé via API:', result.book);
+
+            // Afficher un message selon le résultat
+            let successMessage = `"${result.book.title}" a été ajouté avec succès.`;
+            if (result.jacketDownloaded) {
+                successMessage +=
+                    ' La couverture a été téléchargée automatiquement.';
+            }
+
+            // Recharger la liste des livres pour avoir les données complètes (une seule fois)
             await loadBooks();
 
             toast({
                 title: 'Succès - Livre ajouté !',
-                description: `"${newBook.title}" a été ajouté avec succès.`,
+                description: successMessage,
                 variant: 'success',
             });
         } catch (error) {
@@ -147,6 +158,9 @@ const BooksPage = ({ initialSearchTerm }) => {
                 description: `${error.message}`,
                 variant: 'destructive',
             });
+        } finally {
+            // Désactiver le loading
+            if (setLoading) setLoading(false);
         }
     };
 

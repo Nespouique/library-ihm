@@ -157,6 +157,162 @@ export class BooksService extends ApiService {
     async deleteBook(id) {
         return this.deleteJson(`/books/${id}`);
     }
+
+    // Nouvelles méthodes pour la gestion des jaquettes
+
+    /**
+     * Upload une jaquette pour un livre via FormData
+     * @param {string} bookId - L'ID du livre
+     * @param {File|Blob} imageFile - Le fichier image à uploader
+     * @returns {Promise} - La réponse de l'API
+     */
+    async uploadJacket(bookId, imageFile) {
+        const formData = new FormData();
+        formData.append('jacket', imageFile);
+
+        const response = await fetch(`${this.baseUrl}/books/${bookId}/jacket`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (e) {
+            console.log(
+                `Erreur lors de la lecture du JSON pour l'upload de jaquette:`,
+                e
+            );
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                `API Error: ${response.status} ${response.statusText} ${data?.message ? ' - ' + data.message : ''}`
+            );
+        }
+
+        return data;
+    }
+
+    /**
+     * Télécharge une image depuis une URL et la convertit en Blob
+     * @param {string} imageUrl - L'URL de l'image à télécharger
+     * @returns {Promise<Blob>} - Le blob de l'image
+     */
+    async downloadImageAsBlob(imageUrl) {
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+            throw new Error(
+                `Impossible de télécharger l'image: ${response.status} ${response.statusText}`
+            );
+        }
+        return await response.blob();
+    }
+
+    /**
+     * Télécharge automatiquement une jaquette depuis OpenLibrary et l'upload sur le serveur
+     * @param {string} bookId - L'ID du livre
+     * @param {string} isbn - L'ISBN du livre pour récupérer la jaquette
+     * @returns {Promise<boolean>} - true si réussi, false sinon
+     */
+    async downloadAndUploadJacketFromOpenLibrary(bookId, isbn) {
+        try {
+            // Nettoyer l'ISBN (supprimer les tirets et espaces)
+            const cleanISBN = isbn.replace(/[^0-9X]/gi, '');
+
+            // Construire l'URL de la jaquette OpenLibrary (taille L pour large)
+            const openLibraryImageUrl = `https://covers.openlibrary.org/b/isbn/${cleanISBN}-L.jpg`;
+
+            console.log(
+                `Tentative de téléchargement de jaquette depuis: ${openLibraryImageUrl}`
+            );
+
+            // Télécharger l'image depuis OpenLibrary
+            const imageBlob =
+                await this.downloadImageAsBlob(openLibraryImageUrl);
+
+            // Vérifier que l'image n'est pas le placeholder par défaut d'OpenLibrary
+            // (OpenLibrary renvoie parfois une petite image de 1x1 pixel ou très petite)
+            if (imageBlob.size < 1000) {
+                // Moins de 1KB probablement un placeholder
+                console.log('Image trop petite, probablement un placeholder');
+                return false;
+            }
+
+            // Créer un objet File à partir du Blob
+            const imageFile = new File([imageBlob], `jacket_${cleanISBN}.jpg`, {
+                type: 'image/jpeg',
+            });
+
+            // Uploader l'image vers le serveur library-ws
+            const uploadResult = await this.uploadJacket(bookId, imageFile);
+            console.log('Jaquette uploadée avec succès:', uploadResult);
+
+            return true;
+        } catch (error) {
+            console.log(
+                `Impossible de télécharger/uploader la jaquette pour l'ISBN ${isbn}:`,
+                error.message
+            );
+            return false;
+        }
+    }
+
+    /**
+     * Crée un livre et tente automatiquement de télécharger sa jaquette depuis OpenLibrary
+     * @param {Object} bookData - Les données du livre
+     * @returns {Promise<{book: Object, jacketDownloaded: boolean}>} - Le livre créé et si la jaquette a été téléchargée
+     */
+    async createBookWithAutoJacket(bookData) {
+        // Créer d'abord le livre
+        const createdBook = await this.createBook(bookData);
+
+        // Si le livre a été créé avec succès et qu'on a un ISBN, essayer de télécharger la jaquette
+        if (createdBook && createdBook.id && bookData.isbn) {
+            console.log(
+                `Tentative de téléchargement automatique de jaquette pour le livre "${createdBook.title}"`
+            );
+
+            try {
+                // Attendre la fin du téléchargement (synchrone maintenant)
+                const jacketSuccess =
+                    await this.downloadAndUploadJacketFromOpenLibrary(
+                        createdBook.id,
+                        bookData.isbn
+                    );
+
+                if (jacketSuccess) {
+                    console.log(
+                        `Jaquette téléchargée automatiquement pour "${createdBook.title}"`
+                    );
+                } else {
+                    console.log(
+                        `Aucune jaquette disponible pour "${createdBook.title}"`
+                    );
+                }
+
+                return {
+                    book: createdBook,
+                    jacketDownloaded: jacketSuccess,
+                };
+            } catch (error) {
+                console.log(
+                    `Erreur lors du téléchargement de jaquette pour "${createdBook.title}":`,
+                    error
+                );
+                return {
+                    book: createdBook,
+                    jacketDownloaded: false,
+                };
+            }
+        }
+
+        // Pas d'ISBN ou livre non créé
+        return {
+            book: createdBook,
+            jacketDownloaded: false,
+        };
+    }
 }
 
 // Service pour les étagères
