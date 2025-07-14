@@ -1,9 +1,61 @@
 import path from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import fs from 'fs';
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        // Plugin personnalisé pour gérer la mise à jour du fichier kubes.svg
+        {
+            name: 'svg-updater',
+            configureServer(server) {
+                server.middlewares.use(
+                    '/api/update-kubes-svg',
+                    (req, res, next) => {
+                        if (req.method === 'PUT') {
+                            let body = '';
+                            req.on('data', (chunk) => {
+                                body += chunk.toString();
+                            });
+                            req.on('end', () => {
+                                try {
+                                    const svgPath = path.join(
+                                        process.cwd(),
+                                        'public',
+                                        'kubes.svg'
+                                    );
+                                    fs.writeFileSync(svgPath, body, 'utf8');
+                                    res.writeHead(200, {
+                                        'Content-Type': 'application/json',
+                                    });
+                                    res.end(
+                                        JSON.stringify({
+                                            success: true,
+                                            message:
+                                                'Fichier mis à jour avec succès',
+                                        })
+                                    );
+                                } catch (error) {
+                                    res.writeHead(500, {
+                                        'Content-Type': 'application/json',
+                                    });
+                                    res.end(
+                                        JSON.stringify({
+                                            success: false,
+                                            error: error.message,
+                                        })
+                                    );
+                                }
+                            });
+                        } else {
+                            next();
+                        }
+                    }
+                );
+            },
+        },
+    ],
     server: {
         host: '0.0.0.0', // Écouter sur toutes les interfaces réseau
         port: 5173, // Port explicite

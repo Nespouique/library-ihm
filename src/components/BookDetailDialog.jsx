@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Dialog,
     DialogContent,
@@ -17,6 +18,7 @@ import {
     Siren,
     BookOpen,
 } from 'lucide-react';
+import { areKubesAvailable } from '@/lib/kubeUtils';
 
 // Helper function to get jacket image URL from API
 const getImageUrl = (book, size = 'small') => {
@@ -26,6 +28,15 @@ const getImageUrl = (book, size = 'small') => {
 
 const BookDetailDialog = ({ book, open, onOpenChange }) => {
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const [kubesAvailable, setKubesAvailable] = useState(false);
+    const navigate = useNavigate();
+
+    // Vérifier la disponibilité des kubes quand le dialog s'ouvre
+    useEffect(() => {
+        if (open) {
+            areKubesAvailable().then(setKubesAvailable);
+        }
+    }, [open]);
 
     if (!book) return null;
 
@@ -40,6 +51,12 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
         } catch (error) {
             return 'Date invalide :', error.message;
         }
+    };
+
+    // Fonction pour naviguer vers la page kubes avec le kube spécifique
+    const handleKubeClick = () => {
+        onOpenChange(false); // Fermer le dialog
+        navigate(`/kubes?highlight=${book.shelfLocation}`);
     };
 
     return (
@@ -114,7 +131,19 @@ const BookDetailDialog = ({ book, open, onOpenChange }) => {
                                         <span className="font-medium">
                                             Étagère :
                                         </span>{' '}
-                                        {book.shelf}
+                                        {book.shelf === 'Non classé' ? (
+                                            <span>{book.shelf}</span>
+                                        ) : book.shelfLocation &&
+                                          kubesAvailable ? (
+                                            <button
+                                                onClick={handleKubeClick}
+                                                className="text-primary underline hover:text-primary/80 transition-colors cursor-pointer"
+                                            >
+                                                {book.shelf}
+                                            </button>
+                                        ) : (
+                                            <span>{book.shelf}</span>
+                                        )}
                                     </p>
                                 </div>
                             )}

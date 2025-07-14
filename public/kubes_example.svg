@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1659 812">
+    <defs>
+        <style>
+            .cls-1 {
+                fill: #fff;
+            }
+
+            .cls-2 {
+                fill: #f4ede2;
+            }
+
+            .cls-3 {
+                fill: #dee791;
+            }
+
+            .cls-4 {
+                fill: #bda887;
+            }
+
+            .cls-5 {
+                fill: #706040;
+            }
+
+            .cls-1,
+            .cls-2,
+            .cls-3,
+            .cls-4,
+            .cls-5 {
+                stroke: #000;
+                stroke-miterlimit: 10;
+                stroke-width: 2px;
+            }
+        </style>
+    </defs>
+    <title>kubes</title>
+        <g id="kubes">
+            <g id="kube40">
+                <rect id="outer-kube40" class="cls-1" x="1463" y="133" width="195" height="95" />
+                <rect id="inner-kube40" class="cls-2" x="1468" y="138" width="185" height="85" />
+            </g>
+            <g id="kube39">
+                <rect id="outer-kube39" class="cls-1" x="1349" y="38" width="195" height="95" />
+                <rect id="inner-kube39" class="cls-3" x="1354" y="43" width="185" height="85" />
+            </g>
+            <g id="kube38">
+                <rect id="outer-kube38" class="cls-1" x="1254" y="7" width="95" height="160" />
+                <rect id="inner-kube38" class="cls-4" x="1259" y="12" width="85" height="150" />
+            </g>
+            <g id="kube37">
+                <rect id="outer-kube37" class="cls-1" x="1094" y="77" width="160" height="90" />
+                <rect id="inner-kube37" class="cls-2" x="1099" y="82" width="150" height="80" />
+            </g>
+            <g id="kube36">
+                <rect id="outer-kube36" class="cls-1" x="899" y="107" width="195" height="95" />
+                <rect id="inner-kube36" class="cls-3" x="904" y="112" width="185" height="85" />
+            </g>
+            <g id="kube35">
+                <rect id="outer-kube35" class="cls-1" x="1289" y="167" width="105" height="105" />
+                <rect id="inner-kube35" class="cls-2" x="1294" y="172" width="95" height="95" />
+            </g>
+            <g id="kube34">
+                <rect id="outer-kube34" class="cls-1" x="1094" y="167" width="195" height="95" />
+                <rect id="inner-kube34" class="cls-5" x="1099" y="172" width="185" height="85" />
+            </g>
+            <g id="kube33">
+                <rect id="outer-kube33" class="cls-1" x="969" y="202" width="125" height="80" />
+                <rect id="inner-kube33" class="cls-4" x="974" y="207" width="115" height="70" />
+            </g>
+            <g id="kube32">
+                <rect id="outer-kube32" class="cls-1" x="810" y="202" width="160" height="90" />
+                <rect id="inner-kube32" class="cls-2" x="815" y="207" width="150" height="80" />
+            </g>
+            <g id="kube31">
+                <rect id="outer-kube31" class="cls-1" x="837" y="292" width="195" height="95" />
+                <rect id="inner-kube31" class="cls-2" x="842" y="297" width="185" height="85" />
+            </g>
+            <g id="kube30">
+                <rect id="outer-kube30" class="cls-1" x="837" y="387" width="125" height="80" />
+                <rect id="inner-kube30" class="cls-5" x="842" y="392" width="115" height="70" />
+            </g>
+            <g id="kube29">
+                <rect id="outer-kube29" class="cls-1" x="702" y="311" width="135" height="155" />
+                <rect id="inner-kube29" class="cls-3" x="707" y="316" width="125" height="145" />
+            </g>
+            <g id="kube28">
+                <rect id="outer-kube28" class="cls-1" x="780" y="466" width="195" height="95" />
+                <rect id="inner-kube28" class="cls-3" x="785" y="471" width="185" height="85" />
+            </g>
+            <g id="kube27">
+                <rect id="outer-kube27" class="cls-1" x="567" y="406" width="135" height="155" />
+                <rect id="inner-kube27" class="cls-2" x="572" y="411" width="125" height="145" />
+            </g>
+            <g id="kube26">
+                <rect id="outer-kube26" class="cls-1" x="899" y="561" width="135" height="155" />
+                <rect id="inner-kube26" class="cls-4" x="904" y="566" width="125" height="145" />
+            </g>
+            <g id="kube25">
+                <rect id="outer-kube25" class="cls-1" x="670" y="561" width="160" height="90" />
+                <rect id="inner-kube25" class="cls-2" x="675" y="566" width="150" height="80" />
+            </g>
+            <g id="kube24">
+                <rect id="outer-kube24" class="cls-1" x="477" y="541" width="90" height="90" />
+                <rect id="inner-kube24" class="cls-2" x="482" y="546" width="80" height="80" />
+            </g>
+            <g id="kube23">
+                <rect id="outer-kube23" class="cls-1" x="752" y="716" width="195" height="95" />
+                <rect id="inner-kube23" class="cls-5" x="757" y="721" width="185" height="85" />
+            </g>
+            <g id="kube22">
+                <rect id="outer-kube22" class="cls-1" x="617" y="651" width="135" height="160" />
+                <rect id="inner-kube22" class="cls-4" x="622" y="656" width="125" height="150" />
+            </g>
+            <g id="kube21">
+                <rect id="outer-kube21" class="cls-1" x="512" y="631" width="105" height="105" />
+                <rect id="inner-kube21" class="cls-5" x="517" y="636" width="95" height="95" />
+            </g>
+            <g id="kube20">
+                <rect id="outer-kube20" class="cls-1" x="352" y="631" width="160" height="90" />
+                <rect id="inner-kube20" class="cls-3" x="357" y="636" width="150" height="80" />
+            </g>
+            <g id="kube19">
+                <rect id="outer-kube19" class="cls-1" x="352" y="721" width="160" height="90" />
+                <rect id="inner-kube19" class="cls-2" x="357" y="726" width="150" height="80" />
+            </g>
+            <g id="kube18">
+                <rect id="outer-kube18" class="cls-1" x="262" y="721" width="90" height="90" />
+                <rect id="inner-kube18" class="cls-2" x="267" y="726" width="80" height="80" />
+            </g>
+            <g id="kube17">
+                <rect id="outer-kube17" class="cls-1" x="496" y="247" width="90" height="90" />
+                <rect id="inner-kube17" class="cls-2" x="501" y="252" width="80" height="80" />
+            </g>
+            <g id="kube16">
+                <rect id="outer-kube16" class="cls-1" x="638" y="122" width="115" height="95" />
+                <rect id="inner-kube16" class="cls-5" x="643" y="127" width="105" height="85" />
+            </g>
+            <g id="kube15">
+                <rect id="outer-kube15" class="cls-1" x="443" y="152" width="195" height="95" />
+                <rect id="inner-kube15" class="cls-3" x="448" y="157" width="185" height="85" />
+            </g>
+            <g id="kube14">
+                <rect id="outer-kube14" class="cls-1" x="646" y="32" width="160" height="90" />
+                <rect id="inner-kube14" class="cls-3" x="651" y="37" width="150" height="80" />
+            </g>
+            <g id="kube13">
+                <rect id="outer-kube13" class="cls-1" x="486" y="11" width="160" height="90" />
+                <rect id="inner-kube13" class="cls-2" x="491" y="16" width="150" height="80" />
+            </g>
+            <g id="kube12">
+                <rect id="outer-kube12" class="cls-1" x="396" y="62" width="90" height="90" />
+                <rect id="inner-kube12" class="cls-2" x="401" y="67" width="80" height="80" />
+            </g>
+            <g id="kube11">
+                <rect id="outer-kube11" class="cls-1" x="306" y="1" width="90" height="115" />
+                <rect id="inner-kube11" class="cls-4" x="311" y="6" width="80" height="105" />
+            </g>
+            <g id="kube10">
+                <rect id="outer-kube10" class="cls-1" x="58" y="666" width="95" height="115" />
+                <rect id="inner-kube10" class="cls-4" x="63" y="671" width="85" height="105" />
+            </g>
+            <g id="kube9">
+                <rect id="outer-kube9" class="cls-1" x="116" y="576" width="115" height="90" />
+                <rect id="inner-kube9" class="cls-5" x="121" y="581" width="105" height="80" />
+            </g>
+            <g id="kube8">
+                <rect id="outer-kube8" class="cls-1" x="1" y="576" width="115" height="90" />
+                <rect id="inner-kube8" class="cls-3" x="6" y="581" width="105" height="80" />
+            </g>
+            <g id="kube7">
+                <rect id="outer-kube7" class="cls-1" x="168" y="486" width="115" height="90" />
+                <rect id="inner-kube7" class="cls-2" x="173" y="491" width="105" height="80" />
+            </g>
+            <g id="kube6">
+                <rect id="outer-kube6" class="cls-1" x="78" y="486" width="90" height="90" />
+                <rect id="inner-kube6" class="cls-2" x="83" y="491" width="80" height="80" />
+            </g>
+            <g id="kube5">
+                <rect id="outer-kube5" class="cls-1" x="283" y="331" width="155" height="155" />
+                <rect id="inner-kube5" class="cls-5" x="288" y="336" width="145" height="145" />
+            </g>
+            <g id="kube4">
+                <rect id="outer-kube4" class="cls-1" x="123" y="391" width="160" height="95" />
+                <rect id="inner-kube4" class="cls-4" x="128" y="396" width="150" height="85" />
+            </g>
+            <g id="kube3">
+                <rect id="outer-kube3" class="cls-1" x="163" y="271" width="120" height="120" />
+                <rect id="inner-kube3" class="cls-5" x="168" y="276" width="110" height="110" />
+            </g>
+            <g id="kube2">
+                <rect id="outer-kube2" class="cls-1" x="48" y="271" width="115" height="90" />
+                <rect id="inner-kube2" class="cls-2" x="53" y="276" width="105" height="80" />
+            </g>
+            <g id="kube1">
+                <rect id="outer-kube1" class="cls-1" x="29" y="176" width="195" height="95" />
+                <rect id="inner-kube1" class="cls-3" x="34" y="181" width="185" height="85" />
+            </g>
+        </g>
+</svg>

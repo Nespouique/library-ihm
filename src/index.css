@@ -180,3 +180,53 @@
 .truncate-text {
     @apply overflow-hidden text-ellipsis whitespace-nowrap;
 }
+
+/* Styles pour les kubes */
+.cls-1 {
+    fill: #fff;
+}
+.cls-2 {
+    fill: #f4ede2;
+}
+.cls-3 {
+    fill: #dee791;
+}
+.cls-4 {
+    fill: #bda887;
+}
+.cls-5 {
+    fill: #706040;
+}
+.cls-1,
+.cls-2,
+.cls-3,
+.cls-4,
+.cls-5 {
+    stroke: #000;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+}
+.kube-inner {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.kube-inner:hover {
+    filter: brightness(1.1);
+    stroke-width: 3px;
+}
+
+/* Styles pour les kubes mis en évidence */
+.kube-highlighted {
+    animation: kubeFlash 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes kubeFlash {
+    0% {
+        stroke-width: 5px;
+        stroke: #ffa8a8ff;
+    }
+    100% {
+        stroke-width: 5px;
+        stroke: #ff0000ff;
+    }
+}

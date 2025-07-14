@@ -40,10 +40,12 @@ const BooksPage = ({ initialSearchTerm }) => {
                     authorsService.getAuthors(1),
                 ]);
 
-            // Créer un mapping ID étagère -> nom étagère
+            // Créer un mapping ID étagère -> informations étagère
             const shelvesMap = {};
+            const shelvesInfoMap = {}; // Pour stocker les infos complètes incluant location
             shelvesResponse.forEach((shelf) => {
                 shelvesMap[shelf.id] = shelf.name;
+                shelvesInfoMap[shelf.id] = shelf; // Stocker l'objet complet
             });
 
             // Créer un mapping ID auteur -> nom complet auteur
@@ -67,6 +69,10 @@ const BooksPage = ({ initialSearchTerm }) => {
                     ? shelvesMap[book.shelf] || book.shelf
                     : 'Non classé', // Utiliser le nom de l'étagère
                 shelfId: book.shelf, // Conserver l'ID original pour l'édition
+                shelfLocation:
+                    book.shelf && shelvesInfoMap[book.shelf]
+                        ? shelvesInfoMap[book.shelf].location
+                        : null, // Ajouter la location de l'étagère
                 publicationDate: book.date,
                 jacket: book.jacket, // Nom du fichier jacket de l'API
             }));

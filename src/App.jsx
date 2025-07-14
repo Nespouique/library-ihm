@@ -10,6 +10,7 @@ import Layout from '@/components/Layout';
 import BooksPage from '@/pages/BooksPage';
 import AuthorsPage from '@/pages/AuthorsPage';
 import ShelvesPage from '@/pages/ShelvesPage';
+import KubesPage from '@/pages/KubesPage';
 import { Toaster } from '@/components/ui/toaster';
 
 function ScrollToTop() {
@@ -40,6 +41,7 @@ function AppContent() {
                 />
                 <Route path="auteurs" element={<AuthorsPage />} />
                 <Route path="etageres" element={<ShelvesPage />} />
+                <Route path="kubes" element={<KubesPage />} />
             </Route>
         </Routes>
     );

@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { Book, Users, SquareLibrary } from 'lucide-react';
+import { NavLink, Outlet, Link } from 'react-router-dom';
+import { Book, Users, SquareLibrary, BrickWall } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import KubeIcon from './KubeIcon';
 
@@ -9,6 +9,7 @@ const Layout = () => {
         { to: '/', icon: Book, label: 'Livres' },
         { to: '/auteurs', icon: Users, label: 'Auteurs' },
         { to: '/etageres', icon: SquareLibrary, label: 'Étagères' },
+        { to: '/kubes', icon: BrickWall, label: 'Kubes' },
     ];
 
     return (
@@ -18,12 +19,15 @@ const Layout = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         {' '}
-                        <div className="flex items-center space-x-2">
+                        <Link
+                            to="/"
+                            className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer"
+                        >
                             <KubeIcon className="h-8 w-8 text-primary" />
                             <span className="text-xl font-bold main-title-text">
                                 Kubothèque
                             </span>
-                        </div>
+                        </Link>
                         <div className="flex items-center space-x-4">
                             <div className="flex space-x-1">
                                 {navItems.map((item) => (

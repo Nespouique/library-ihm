@@ -76,7 +76,8 @@ const ShelvesPage = () => {
 
                 return {
                     id: shelf.id,
-                    name: shelf.name || `Étagère ${shelf.id.substring(0, 8)}`, // Utiliser le nom de l'API ou fallback
+                    name: shelf.name,
+                    location: shelf.location,
                     bookCount: shelfBookCount,
                 };
             });
@@ -147,8 +148,14 @@ const ShelvesPage = () => {
 
     const handleAddShelf = async (newShelf) => {
         try {
+            // Préparer les données pour l'API
+            const shelfData = {
+                name: newShelf.name,
+                location: newShelf.location || null,
+            };
+
             // Appeler l'API pour créer l'étagère
-            const response = await shelvesService.createShelf(newShelf);
+            const response = await shelvesService.createShelf(shelfData);
             console.log('Étagère créée via API:', response);
 
             // Recharger la liste des étagères pour avoir les données complètes
@@ -182,6 +189,7 @@ const ShelvesPage = () => {
                 updatedShelfData.id,
                 {
                     name: updatedShelfData.name,
+                    location: updatedShelfData.location || null,
                 }
             );
             console.log('Étagère mise à jour via API:', response);
@@ -331,6 +339,7 @@ const ShelvesPage = () => {
                 onOpenChange={setIsAddDialogOpen}
                 onAddShelf={handleAddShelf}
                 mode="add"
+                shelves={shelves}
             />
 
             <ShelfDialog
@@ -344,6 +353,7 @@ const ShelvesPage = () => {
                 onUpdateShelf={handleUpdateShelf}
                 shelfToEdit={shelfToEdit}
                 mode="edit"
+                shelves={shelves}
             />
             {selectedShelf && (
                 <ShelfDetailDialog

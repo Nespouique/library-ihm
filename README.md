@@ -42,6 +42,57 @@ The frontend communicates with the REST API to:
 - **Create Shelves** : Interface to add new sections
 - **Statistics** : Information about shelf occupancy
 
+### 🗺️ Spatial Visualization System
+
+The application features an advanced **interactive SVG-based spatial visualization** that allows you to:
+
+- **Visual Mapping** : See the physical layout of your library space
+- **Interactive Navigation** : Click on locations to view assigned shelves
+- **Real-time Highlighting** : Navigate from book details directly to shelf locations
+- **Dynamic Loading** : Upload custom SVG layouts to match your physical space
+
+#### SVG File Format
+
+The spatial visualization requires a properly formatted SVG file located at `public/kubes.svg` that can be uploaded directly from the application "Kubes" page. The format must follow these specifications:
+
+**Required Structure:**
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1659 812">
+    <g id="kubes">
+        <!-- Each location must be a group with ID starting with "kube" -->
+        <g id="kube1">
+            <!-- Outer rectangle (border) -->
+            <rect id="outer-kube1" class="cls-1" x="100" y="100" width="195" height="95" />
+            <!-- Inner rectangle (clickable area) -->
+            <rect id="inner-kube1" class="cls-2" x="105" y="105" width="185" height="85" />
+        </g>
+        <g id="kube2">
+            <rect id="outer-kube2" class="cls-1" x="300" y="100" width="195" height="95" />
+            <rect id="inner-kube2" class="cls-3" x="305" y="105" width="185" height="85" />
+        </g>
+        <!-- ... more locations ... -->
+    </g>
+</svg>
+```
+
+**Naming Conventions:**
+
+- **Group IDs** : Must start with `kube` followed by a number (e.g., `kube1`, `kube2`, `kube40`)
+- **Rectangle IDs** :
+    - Outer: `outer-kubeX` (where X matches the group number)
+    - Inner: `inner-kubeX` (where X matches the group number)
+
+**File Upload:**
+
+- Navigate to the **Spatial Layout** page (`/kubes`)
+- If no valid SVG is detected, an upload interface will appear
+- Select your custom SVG file to replace `public/kubes.svg`
+- The system will automatically reload and display your layout
+
+**Example File:**
+See `public/kubes_example.svg` for a complete working example with multiple shelf locations and styling.
+
 ## 🚀 Technologies Used
 
 ### Frontend
