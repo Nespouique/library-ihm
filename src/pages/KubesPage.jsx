@@ -6,7 +6,15 @@ import FullscreenToggle from '@/components/FullscreenToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, FileImage } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Upload, FileImage, Pencil, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { shelvesService, booksService, authorsService } from '@/services/api';
 import {
@@ -14,6 +22,8 @@ import {
     getKubeDataSync,
     getAvailableKubeIds,
     forceReloadSVG,
+    getUploadMethod,
+    markAsDeleted,
 } from '@/lib/kubeUtils';
 
 const KubesPage = () => {
@@ -27,6 +37,8 @@ const KubesPage = () => {
     const [kubeDataLoaded, setKubeDataLoaded] = useState(false);
     const [svgFileExists, setSvgFileExists] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Charger les livres depuis l'API
@@ -92,10 +104,17 @@ const KubesPage = () => {
             // Forcer le rechargement en ignorant le cache d'état
             forceReloadSVG();
 
-            // Recharger les données du SVG
-            await loadKubeDataFromSVG();
-            setKubeDataLoaded(true);
-            setSvgFileExists(true);
+            // Recharger les données du SVG (forcer le test après upload)
+            const kubeData = await loadKubeDataFromSVG(true);
+
+            // Si kubeData est null, cela signifie que le SVG est vide/invalide
+            if (kubeData === null) {
+                setKubeDataLoaded(false);
+                setSvgFileExists(false);
+            } else {
+                setKubeDataLoaded(true);
+                setSvgFileExists(true);
+            }
 
             // Recharger les étagères et livres
             await Promise.all([loadShelves(), loadBooks()]);
@@ -131,151 +150,129 @@ const KubesPage = () => {
         setIsUploading(true);
 
         try {
-            // Lire le contenu du fichier SVG
-            const svgContent = await file.text();
+            // Créer un FormData pour l'upload
+            const formData = new FormData();
+            formData.append('svg', file);
 
-            // Remplacer le contenu du fichier kubes.svg existant
-            try {
-                const response = await fetch('/api/update-kubes-svg', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'image/svg+xml',
-                    },
-                    body: svgContent,
-                });
+            // Déterminer la méthode HTTP selon l'état du fichier
+            const method = getUploadMethod();
 
-                const result = await response.json();
+            // Envoyer le fichier SVG au backend
+            const response = await fetch('/api/kubes', {
+                method: method,
+                body: formData,
+            });
 
-                if (response.ok && result.success) {
-                    // Attendre un peu pour que le fichier soit écrit, puis recharger
-                    setTimeout(async () => {
-                        try {
-                            // Forcer le rechargement des données
-                            await reloadKubeData();
+            const result = await response.json();
 
-                            toast({
-                                title: 'Succès',
-                                description:
-                                    'Le fichier kubes.svg a été mis à jour avec succès !',
-                                variant: 'success',
-                            });
-                        } catch (reloadError) {
-                            console.error(
-                                'Erreur lors du rechargement:',
-                                reloadError
-                            );
-                            toast({
-                                title: 'Fichier mis à jour',
-                                description:
-                                    'Le fichier a été mis à jour. Rechargement en cours...',
-                                variant: 'default',
-                            });
-
-                            // En cas d'échec du rechargement, essayer une fois de plus après un délai plus long
-                            setTimeout(async () => {
-                                try {
-                                    await reloadKubeData();
-                                    toast({
-                                        title: 'Succès',
-                                        description:
-                                            'Données rechargées avec succès !',
-                                        variant: 'default',
-                                    });
-                                } catch (secondReloadError) {
-                                    console.error(
-                                        'Deuxième tentative de rechargement échouée:',
-                                        secondReloadError
-                                    );
-                                    toast({
-                                        title: 'Rechargement nécessaire',
-                                        description:
-                                            'Veuillez actualiser la page pour voir les changements.',
-                                        variant: 'default',
-                                    });
-                                }
-                            }, 1000);
-                        }
-                    }, 300);
-                } else {
-                    throw new Error(
-                        result.error || 'Impossible de mettre à jour le fichier'
-                    );
-                }
-            } catch (fetchError) {
-                console.log(
-                    'API de mise à jour non disponible, utilisation du téléchargement...',
-                    fetchError.message
-                );
-
-                // Fallback : téléchargement automatique
-                const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'kubes.svg';
-                link.style.display = 'none';
-                document.body.appendChild(link);
-
-                toast({
-                    title: 'Fichier téléchargé',
-                    description:
-                        'Le fichier kubes.svg a été téléchargé. Placez-le dans public/kubes.svg puis cliquez sur "Actualiser" ci-dessous.',
-                    variant: 'default',
-                });
-
-                link.click();
-
-                // Nettoyer
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-
-                // Ajouter un message pour indiquer qu'un rechargement automatique sera tenté
+            if (response.ok) {
+                // Attendre un peu puis recharger les données
                 setTimeout(async () => {
-                    toast({
-                        title: 'Tentative de rechargement automatique...',
-                        description:
-                            'Essai de rechargement des données après remplacement du fichier.',
-                        variant: 'default',
-                    });
-
                     try {
                         await reloadKubeData();
                         toast({
                             title: 'Succès',
                             description:
-                                'Données rechargées automatiquement avec succès !',
-                            variant: 'default',
+                                'La visualisation a été mise à jour avec succès !',
+                            variant: 'success',
                         });
-                    } catch {
-                        toast({
-                            title: 'Rechargement manuel nécessaire',
-                            description:
-                                'Impossible de recharger automatiquement. Veuillez actualiser la page.',
-                            variant: 'default',
-                        });
+                    } catch (reloadError) {
+                        console.error(
+                            'Erreur lors du rechargement:',
+                            reloadError
+                        );
+                        throw reloadError;
                     }
-                }, 3000);
+                }, 300);
+            } else {
+                throw new Error(
+                    result.error || 'Impossible de mettre à jour le fichier'
+                );
             }
         } catch (error) {
-            console.error('Erreur lors du traitement du fichier:', error);
+            console.error("Erreur lors de l'upload:", error);
             toast({
                 title: 'Erreur',
-                description: 'Impossible de traiter le fichier SVG.',
+                description: `Erreur lors de l'upload: ${error.message}`,
                 variant: 'destructive',
             });
         } finally {
             setIsUploading(false);
-            // Reset l'input file
-            event.target.value = '';
+            // Réinitialiser l'input file
+            if (event.target) {
+                event.target.value = '';
+            }
+        }
+    };
+
+    // Fonction pour déclencher la confirmation de suppression
+    const handleDeleteClick = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    // Fonction pour annuler la suppression
+    const handleCancelDelete = () => {
+        setShowDeleteConfirm(false);
+    };
+
+    // Fonction pour confirmer la suppression
+    const handleConfirmDelete = async () => {
+        setIsDeleting(true);
+
+        try {
+            const response = await fetch('/api/kubes', {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                // Marquer le fichier comme supprimé pour que le prochain upload soit un POST
+                markAsDeleted();
+                setSvgFileExists(false);
+                setKubeDataLoaded(false);
+                setShowDeleteConfirm(false);
+
+                toast({
+                    title: 'Succès',
+                    description:
+                        'Le fichier kubes.svg a été supprimé avec succès !',
+                    variant: 'success',
+                });
+            } else {
+                const result = await response.json();
+                throw new Error(
+                    result.error || 'Impossible de supprimer le fichier'
+                );
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression:', error);
+            toast({
+                title: 'Erreur',
+                description: `Erreur lors de la suppression: ${error.message}`,
+                variant: 'destructive',
+            });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     useEffect(() => {
         const initializeData = async () => {
             try {
-                // Charger les données du SVG en premier
-                await loadKubeDataFromSVG();
+                // Charger les données du SVG en premier (forcer le test initial)
+                const kubeData = await loadKubeDataFromSVG(true);
+
+                // Si kubeData est null, cela signifie que le SVG est vide/invalide (cas normal)
+                if (kubeData === null) {
+                    console.log(
+                        "Fichier SVG vide ou invalide (cache), affichage du composant d'upload"
+                    );
+                    setSvgFileExists(false);
+                    setKubeDataLoaded(false);
+                    // Charger quand même les étagères et livres
+                    await Promise.all([loadShelves(), loadBooks()]);
+                    return;
+                }
+
                 setKubeDataLoaded(true);
                 setSvgFileExists(true);
 
@@ -374,7 +371,7 @@ const KubesPage = () => {
     const renderInteractiveSVG = () => {
         return (
             <div className="w-full">
-                <div className="relative w-full">
+                <div className="relative w-full group">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 1659 812"
@@ -436,6 +433,52 @@ const KubesPage = () => {
                                 })}
                         </g>
                     </svg>
+
+                    {/* Boutons flottants d'édition et suppression - visibles au survol */}
+                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="hidden">
+                            <Label
+                                htmlFor="svg-edit-upload"
+                                className="sr-only"
+                            >
+                                Modifier le fichier SVG
+                            </Label>
+                            <Input
+                                id="svg-edit-upload"
+                                type="file"
+                                accept=".svg,image/svg+xml"
+                                onChange={handleFileUpload}
+                                disabled={isUploading}
+                                className="cursor-pointer"
+                            />
+                        </div>
+
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={() =>
+                                    document
+                                        .getElementById('svg-edit-upload')
+                                        .click()
+                                }
+                                disabled={isUploading || isDeleting}
+                                size="sm"
+                                className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg backdrop-blur-sm rounded-full w-10 h-10 p-0"
+                                title="Modifier le fichier SVG"
+                            >
+                                <Pencil className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                                onClick={handleDeleteClick}
+                                disabled={isUploading || isDeleting}
+                                size="sm"
+                                className="bg-red-500/90 hover:bg-red-500 text-white shadow-lg backdrop-blur-sm rounded-full w-10 h-10 p-0"
+                                title="Supprimer le fichier SVG"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -491,18 +534,12 @@ const KubesPage = () => {
                                 ? 'Traitement en cours...'
                                 : 'Choisir un fichier SVG'}
                         </Button>
-
-                        <Button
-                            onClick={() => window.location.reload()}
-                            variant="outline"
-                            className="w-full"
-                        >
-                            Actualiser la page
-                        </Button>
                     </div>
 
-                    <div className="mt-6 text-sm text-muted-foreground">
-                        <p className="mb-2">Format requis :</p>
+                    <div className="mt-8 text-sm text-muted-foreground">
+                        <h3 className="text-base font-semibold text-foreground mb-3">
+                            Format requis :
+                        </h3>
                         <ul className="text-left space-y-1">
                             <li>• Fichier au format SVG</li>
                             <li>
@@ -514,6 +551,18 @@ const KubesPage = () => {
                                 avec IDs "outer-kubeX" et "inner-kubeX"
                             </li>
                         </ul>
+                        <p className="text-xs mt-4">
+                            Vous pouvez utiliser le fichier{' '}
+                            <a
+                                href="/kubes_example.svg"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                            >
+                                kubes_example.svg
+                            </a>{' '}
+                            comme modèle de format.
+                        </p>
                     </div>
                 </div>
             </motion.div>
@@ -576,6 +625,42 @@ const KubesPage = () => {
 
             {/* Bouton plein écran */}
             <FullscreenToggle />
+
+            {/* Dialog de confirmation de suppression */}
+            <Dialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="text-center">
+                        <DialogTitle className="main-title-text text-center pb-3 font-bold">
+                            Êtes-vous sûr ?
+                        </DialogTitle>
+                        <DialogDescription className="text-center">
+                            Vous êtes sur le point de supprimer le fichier{' '}
+                            <em>kubes.svg</em>.
+                            <br />
+                            Cette action est irréversible.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="sm:justify-center">
+                        <Button
+                            variant="outline"
+                            onClick={handleCancelDelete}
+                            disabled={isDeleting}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            variant="default"
+                            onClick={handleConfirmDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? 'Suppression...' : 'Confirmer'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

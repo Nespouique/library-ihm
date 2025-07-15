@@ -1,34 +1,50 @@
 // Cache pour stocker les données des kubes
 let kubeDataCache = null;
 
-// Cache d'état pour éviter de recharger un SVG vide
-const svgState = {
-    isValid: null, // null = pas encore testé, true = valide, false = vide/invalide
+// Cache d'état simplifié
+const svgCache = {
+    status: 'unknown', // 'unknown', 'valid', 'invalid_empty', 'invalid_notFound'
+    data: null,
     lastChecked: null,
 };
 
 /**
  * Charge et parse le fichier SVG pour extraire les données des kubes
+ * @param {boolean} force - Si true, ignore le cache et force un nouvel appel API
  */
-export const loadKubeDataFromSVG = async () => {
-    if (kubeDataCache) {
-        return kubeDataCache;
+export const loadKubeDataFromSVG = async (force = false) => {
+    // Si on a déjà des données en cache et qu'on ne force pas, les retourner
+    if (!force && svgCache.status === 'valid' && svgCache.data) {
+        kubeDataCache = svgCache.data;
+        return svgCache.data;
     }
 
-    // Si on sait déjà que le SVG est invalide, ne pas réessayer
-    if (svgState.isValid === false) {
-        throw new Error(
-            'Le fichier SVG ne contient aucun groupe kube valide (cache)'
-        );
+    // Si on sait que le fichier est invalide et qu'on ne force pas, retourner null
+    if (
+        !force &&
+        (svgCache.status === 'invalid_empty' ||
+            svgCache.status === 'invalid_notFound')
+    ) {
+        return null;
     }
 
     try {
-        const response = await fetch('/kubes.svg');
+        const response = await fetch('/api/kubes');
 
         if (!response.ok) {
-            throw new Error(
-                `Erreur ${response.status}: ${response.statusText}`
-            );
+            if (response.status === 404) {
+                // Fichier n'existe pas
+                svgCache.status = 'invalid_notFound';
+                svgCache.data = null;
+                svgCache.lastChecked = new Date();
+                console.log('Fichier SVG non trouvé (404)');
+                return null;
+            } else {
+                // Autre erreur
+                throw new Error(
+                    `Erreur ${response.status}: ${response.statusText}`
+                );
+            }
         }
 
         const svgText = await response.text();
@@ -44,12 +60,12 @@ export const loadKubeDataFromSVG = async () => {
 
         // Vérifier si le SVG contient des kubes valides
         if (kubeGroups.length === 0) {
-            // Marquer le SVG comme invalide dans le cache
-            svgState.isValid = false;
-            svgState.lastChecked = new Date();
-            throw new Error(
-                'Le fichier SVG ne contient aucun groupe kube valide'
-            );
+            // Fichier existe mais est vide
+            svgCache.status = 'invalid_empty';
+            svgCache.data = null;
+            svgCache.lastChecked = new Date();
+            console.log('SVG vide ou sans kubes valides');
+            return null;
         }
 
         kubeGroups.forEach((kubeGroup) => {
@@ -76,27 +92,15 @@ export const loadKubeDataFromSVG = async () => {
                 };
             }
         });
-        //console.log('Nb de kubes:', kubeGroups.length);
 
-        // Marquer le SVG comme valide dans le cache
-        svgState.isValid = true;
-        svgState.lastChecked = new Date();
-
+        // Fichier valide avec des kubes
+        svgCache.status = 'valid';
+        svgCache.data = kubeData;
+        svgCache.lastChecked = new Date();
         kubeDataCache = kubeData;
         return kubeData;
     } catch (error) {
-        // Si c'est une erreur de parsing ou de contenu, marquer comme invalide
-        if (
-            error.message.includes('ne contient aucun groupe kube valide') ||
-            error.message.includes('Failed to fetch') ||
-            error.status === 404
-        ) {
-            svgState.isValid = false;
-            svgState.lastChecked = new Date();
-        }
-
         console.error('Erreur lors du chargement du SVG:', error);
-        // Propager l'erreur au lieu de retourner un objet vide
         throw error;
     }
 };
@@ -127,19 +131,20 @@ export const getKubeDataSync = (kubeId) => {
  */
 export const clearKubeDataCache = () => {
     kubeDataCache = null;
-    // Réinitialiser aussi l'état SVG pour permettre un nouveau test
-    svgState.isValid = null;
-    svgState.lastChecked = null;
+    svgCache.status = 'unknown';
+    svgCache.data = null;
+    svgCache.lastChecked = null;
 };
 
 /**
- * Force le rechargement du SVG en ignorant le cache d'état
- * À utiliser après un upload réussi
+ * Force le rechargement du SVG en ignorant le cache
+ * À utiliser après un upload ou suppression réussi
  */
 export const forceReloadSVG = () => {
     kubeDataCache = null;
-    svgState.isValid = null;
-    svgState.lastChecked = null;
+    svgCache.status = 'unknown';
+    svgCache.data = null;
+    svgCache.lastChecked = null;
 };
 
 /**
@@ -171,20 +176,23 @@ export const getTotalKubeCount = () => {
  * Vérifie si les kubes sont disponibles (fichier SVG renseigné et valide)
  */
 export const areKubesAvailable = async () => {
-    // Si on sait déjà que le SVG est invalide, retourner false directement
-    if (svgState.isValid === false) {
+    // Si on a déjà un état en cache, l'utiliser
+    if (svgCache.status === 'valid') {
+        return getTotalKubeCount() > 0;
+    }
+
+    if (
+        svgCache.status === 'invalid_empty' ||
+        svgCache.status === 'invalid_notFound'
+    ) {
         return false;
     }
 
-    // Si on a déjà des données en cache et que le SVG est valide, retourner true
-    if (svgState.isValid === true && kubeDataCache) {
-        return getTotalKubeCount() > 0;
-    }
-
     try {
-        await loadKubeDataFromSVG();
-        return getTotalKubeCount() > 0;
-    } catch {
+        const result = await loadKubeDataFromSVG();
+        return result !== null && getTotalKubeCount() > 0;
+    } catch (error) {
+        console.log('SVG non disponible:', error.message);
         return false;
     }
 };
@@ -193,13 +201,48 @@ export const areKubesAvailable = async () => {
  * Version synchrone pour vérifier si les kubes sont disponibles
  */
 export const areKubesAvailableSync = () => {
-    // Si on sait que le SVG est invalide, retourner false
-    if (svgState.isValid === false) {
-        return false;
+    return svgCache.status === 'valid' && getTotalKubeCount() > 0;
+};
+
+/**
+ * Obtient la méthode HTTP à utiliser pour l'upload du SVG
+ * @returns {'POST'|'PUT'} - POST si le fichier n'existe pas, PUT s'il existe
+ */
+export const getUploadMethod = () => {
+    // POST seulement si le fichier n'existe pas (404)
+    if (svgCache.status === 'invalid_notFound') {
+        return 'POST';
     }
 
-    if (!kubeDataCache) {
-        return false;
+    // PUT si le fichier existe (valide ou vide)
+    return 'PUT';
+};
+
+/**
+ * Vérifie si les données des kubes sont déjà chargées et valides
+ * Utilisé pour éviter les appels API inutiles dans les dialogues
+ */
+export const areKubeDataAlreadyLoaded = () => {
+    return svgCache.status === 'valid' && kubeDataCache !== null;
+};
+
+/**
+ * Version optimisée pour les dialogues - ne recharge pas si les données sont déjà valides
+ */
+export const getKubeDataForDialogs = () => {
+    if (areKubeDataAlreadyLoaded()) {
+        return kubeDataCache;
     }
-    return getTotalKubeCount() > 0;
+    return null;
+};
+
+/**
+ * Marque le fichier comme supprimé (après une suppression réussie)
+ * À utiliser après un DELETE réussi
+ */
+export const markAsDeleted = () => {
+    kubeDataCache = null;
+    svgCache.status = 'invalid_notFound';
+    svgCache.data = null;
+    svgCache.lastChecked = new Date();
 };
