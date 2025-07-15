@@ -14,6 +14,7 @@ import {
     loadKubeDataFromSVG,
     getAvailableKubeIds,
     areKubesAvailable,
+    areKubeDataAlreadyLoaded,
 } from '@/lib/kubeUtils';
 
 const ShelfDialog = ({
@@ -69,9 +70,12 @@ const ShelfDialog = ({
                 setKubesAvailable(available);
 
                 if (available) {
-                    await loadKubeDataFromSVG();
+                    // Utiliser les données déjà chargées si disponibles
+                    if (!areKubeDataAlreadyLoaded()) {
+                        // Seulement si les données ne sont pas encore chargées
+                        await loadKubeDataFromSVG();
+                    }
                     const allKubes = getAvailableKubeIds();
-
                     // Filtrer les kubes qui ne sont pas déjà assignés à d'autres étagères
                     const usedKubes = shelves
                         .filter(
