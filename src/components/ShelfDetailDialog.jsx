@@ -62,7 +62,10 @@ const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
                                         onClick={handleLocationClick}
                                         className="text-primary underline hover:text-primary/80 transition-colors cursor-pointer"
                                     >
-                                        {shelf.location}
+                                        {shelf.location.replace(
+                                            'kube',
+                                            'Kube '
+                                        )}
                                     </button>
                                 ) : (
                                     <span className="text-muted-foreground">

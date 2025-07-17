@@ -166,29 +166,106 @@ const BookDialog = ({
 
                 // Chercher un auteur correspondant - utilise la version actuelle d'authors
                 if (bookData.authors && bookData.authors.length > 0) {
-                    const authorName = bookData.authors[0];
-
                     // Utiliser une fonction de callback pour avoir accès aux authors actuels
                     setFormData((prevData) => {
                         // Récupérer les authors actuels depuis le state
                         const currentAuthors = authors; // Cette variable sera toujours à jour
 
-                        const existingAuthor = currentAuthors.find(
-                            (author) =>
-                                `${author.firstName} ${author.lastName}`.toLowerCase() ===
-                                authorName.toLowerCase()
-                        );
+                        // Fonction pour nettoyer le nom d'un auteur
+                        const cleanAuthorName = (name) => {
+                            if (!name) return '';
+                            return name
+                                .trim() // Supprimer les espaces en début/fin
+                                .replace(/,$/, '') // Supprimer la virgule finale
+                                .replace(/\s+/g, ' ') // Normaliser les espaces multiples
+                                .replace(/\s*\.\s*/g, '.') // Normaliser les espaces autour des points (R. R. -> R.R.)
+                                .replace(/\s*-\s*/g, '-') // Normaliser les espaces autour des tirets
+                                .replace(/[''"'']/g, '') // Supprimer les apostrophes et guillemets
+                                .normalize('NFD') // Décomposer les caractères accentués
+                                .replace(/[\u0300-\u036f]/g, '') // Supprimer les accents
+                                .toLowerCase();
+                        };
 
-                        if (existingAuthor) {
+                        console.log('Authors from API:', bookData.authors);
+
+                        authors.forEach((authorInList) => {
+                            console.log(
+                                'Author in list: ',
+                                `${authorInList.firstName} ${authorInList.lastName}`.toLowerCase()
+                            );
+                        });
+
+                        let foundAuthor = null;
+                        let matchedAuthorName = '';
+
+                        // Parcourir tous les auteurs retournés par l'API
+                        for (const apiAuthor of bookData.authors) {
+                            // Gérer les cas où l'auteur est un objet (OpenLibrary) ou une chaîne (Google)
+                            const authorName =
+                                typeof apiAuthor === 'string'
+                                    ? apiAuthor
+                                    : apiAuthor.name;
+
+                            if (!authorName) continue;
+
+                            const cleanedApiAuthorName =
+                                cleanAuthorName(authorName);
+                            console.log(
+                                'Checking API author:',
+                                cleanedApiAuthorName
+                            );
+
+                            // Chercher dans la base d'auteurs
+                            const existingAuthor = currentAuthors.find(
+                                (author) => {
+                                    const fullName = `${author.firstName} ${author.lastName}`;
+                                    const cleanedDbAuthorName =
+                                        cleanAuthorName(fullName);
+                                    console.log(
+                                        'Comparing:',
+                                        cleanedApiAuthorName,
+                                        'with',
+                                        cleanedDbAuthorName
+                                    );
+                                    return (
+                                        cleanedDbAuthorName ===
+                                        cleanedApiAuthorName
+                                    );
+                                }
+                            );
+
+                            if (existingAuthor) {
+                                foundAuthor = existingAuthor;
+                                matchedAuthorName = authorName;
+                                console.log(
+                                    'Found matching author:',
+                                    matchedAuthorName
+                                );
+                                break; // Sortir de la boucle dès qu'on trouve un match
+                            }
+                        }
+
+                        if (foundAuthor) {
+                            console.log(
+                                `Auteur trouvé: ${matchedAuthorName} -> ${foundAuthor.firstName} ${foundAuthor.lastName}`
+                            );
                             return {
                                 ...prevData,
-                                authorId: existingAuthor.id.toString(),
+                                authorId: foundAuthor.id.toString(),
                             };
                         } else {
-                            // L'auteur n'existe pas, programmer un toast
+                            // Aucun auteur trouvé, programmer un toast avec le premier nom d'auteur
+                            const firstAuthorName =
+                                typeof bookData.authors[0] === 'string'
+                                    ? bookData.authors[0]
+                                    : bookData.authors[0].name;
+
+                            console.warn(
+                                `Aucun auteur trouvé parmi: ${bookData.authors.map((a) => (typeof a === 'string' ? a : a.name)).join(', ')}`
+                            );
                             setToastMessage({
                                 title: 'Auteur non existant',
-                                description: `"${authorName}" n'existe pas. Vous pouvez l'ajouter depuis la page Auteurs.`,
+                                description: `"${firstAuthorName}" n'existe pas. Vous pouvez l'ajouter depuis la page Auteurs.`,
                                 variant: 'default',
                             });
                             return prevData;

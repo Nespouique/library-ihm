@@ -61,6 +61,22 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
         }
     }, [book?.id]);
 
+    // Empêcher le rafraîchissement de la page pendant l'upload
+    useEffect(() => {
+        if (isUploadingJacket) {
+            const handleBeforeUnload = (e) => {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            };
+
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            return () => {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+            };
+        }
+    }, [isUploadingJacket]);
+
     if (!book) return null;
 
     const formatDate = (dateString) => {
@@ -82,18 +98,232 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
         navigate(`/kubes?highlight=${book.shelfLocation}`);
     };
 
+    // Fonction pour corriger l'orientation de l'image basée sur les métadonnées EXIF
+    const correctImageOrientation = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Lire les métadonnées EXIF pour l'orientation
+                    const getOrientation = (buffer) => {
+                        try {
+                            const view = new DataView(buffer);
+
+                            // Vérifier si c'est un JPEG et si on a assez de données
+                            if (
+                                view.byteLength < 2 ||
+                                view.getUint16(0, false) !== 0xffd8
+                            ) {
+                                return 1; // Pas un JPEG ou données insuffisantes
+                            }
+
+                            let offset = 2;
+                            let marker;
+
+                            while (offset < view.byteLength - 1) {
+                                // Vérifier qu'on peut lire le marker
+                                if (offset + 2 > view.byteLength) break;
+
+                                marker = view.getUint16(offset, false);
+                                offset += 2;
+
+                                if (marker === 0xffe1) {
+                                    // EXIF marker
+                                    // Vérifier qu'on peut lire la taille du segment
+                                    if (offset + 2 > view.byteLength) break;
+                                    const segmentSize = view.getUint16(
+                                        offset,
+                                        false
+                                    );
+
+                                    // Vérifier qu'on a assez de données pour le segment EXIF
+                                    if (
+                                        offset + segmentSize >
+                                            view.byteLength ||
+                                        offset + 14 > view.byteLength
+                                    )
+                                        break;
+
+                                    // Vérifier la signature EXIF
+                                    if (offset + 6 > view.byteLength) break;
+                                    const exifSignature = view.getUint32(
+                                        offset + 2,
+                                        false
+                                    );
+                                    if (exifSignature !== 0x45786966) {
+                                        // "Exif"
+                                        offset += segmentSize;
+                                        continue;
+                                    }
+
+                                    // Lire l'endianness
+                                    if (offset + 8 > view.byteLength) break;
+                                    const little =
+                                        view.getUint16(offset + 6, false) ===
+                                        0x4949;
+
+                                    // Lire l'offset IFD
+                                    if (offset + 12 > view.byteLength) break;
+                                    const ifdOffset = view.getUint32(
+                                        offset + 10,
+                                        little
+                                    );
+
+                                    // Vérifier que l'IFD est dans les limites
+                                    if (
+                                        offset + 14 + ifdOffset + 2 >
+                                        view.byteLength
+                                    )
+                                        break;
+
+                                    const tags = view.getUint16(
+                                        offset + 14 + ifdOffset,
+                                        little
+                                    );
+
+                                    // Parcourir les tags
+                                    for (let i = 0; i < tags; i++) {
+                                        const tagOffset =
+                                            offset +
+                                            14 +
+                                            ifdOffset +
+                                            2 +
+                                            i * 12;
+
+                                        // Vérifier qu'on peut lire ce tag
+                                        if (tagOffset + 12 > view.byteLength)
+                                            break;
+
+                                        const tag = view.getUint16(
+                                            tagOffset,
+                                            little
+                                        );
+                                        if (tag === 0x0112) {
+                                            // Orientation tag
+                                            return view.getUint16(
+                                                tagOffset + 8,
+                                                little
+                                            );
+                                        }
+                                    }
+                                    break; // On a trouvé l'EXIF mais pas l'orientation
+                                }
+
+                                if (marker === 0xffda) break; // Start of scan
+
+                                // Passer au segment suivant
+                                if (offset + 2 > view.byteLength) break;
+                                const segmentSize = view.getUint16(
+                                    offset,
+                                    false
+                                );
+                                offset += segmentSize;
+                            }
+
+                            return 1; // Pas d'orientation trouvée
+                        } catch (error) {
+                            console.warn(
+                                'Erreur lors de la lecture des métadonnées EXIF:',
+                                error
+                            );
+                            return 1; // Orientation par défaut en cas d'erreur
+                        }
+                    };
+
+                    const orientation = getOrientation(e.target.result);
+                    console.log('Image orientation:', orientation);
+
+                    let { width, height } = img;
+
+                    // Ajuster les dimensions selon l'orientation
+                    if (orientation > 4) {
+                        [width, height] = [height, width];
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Appliquer la transformation selon l'orientation
+                    switch (orientation) {
+                        case 2:
+                            ctx.transform(-1, 0, 0, 1, width, 0);
+                            break;
+                        case 3:
+                            ctx.transform(-1, 0, 0, -1, width, height);
+                            break;
+                        case 4:
+                            ctx.transform(1, 0, 0, -1, 0, height);
+                            break;
+                        case 5:
+                            ctx.transform(0, 1, 1, 0, 0, 0);
+                            break;
+                        case 6:
+                            ctx.transform(0, 1, -1, 0, height, 0);
+                            break;
+                        case 7:
+                            ctx.transform(0, -1, -1, 0, height, width);
+                            break;
+                        case 8:
+                            ctx.transform(0, -1, 1, 0, 0, width);
+                            break;
+                    }
+
+                    ctx.drawImage(img, 0, 0);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            const correctedFile = new File([blob], file.name, {
+                                type: file.type,
+                                lastModified: Date.now(),
+                            });
+                            resolve(correctedFile);
+                        },
+                        file.type,
+                        0.9
+                    ); // Qualité 90%
+                };
+                img.src = URL.createObjectURL(file);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
     // Fonction pour ouvrir le sélecteur de fichier
-    const handleCameraClick = () => {
+    const handleCameraClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Camera button clicked');
         fileInputRef.current?.click();
     };
 
     // Fonction pour gérer l'upload de la nouvelle jaquette
     const handleFileChange = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+        // Empêcher la propagation et le comportement par défaut
+        event.preventDefault();
+        event.stopPropagation();
+
+        const originalFile = event.target.files?.[0];
+        console.log('File selected:', originalFile);
+
+        if (!originalFile) {
+            console.log('No file selected');
+            return;
+        }
+
+        console.log('Original file details:', {
+            name: originalFile.name,
+            size: originalFile.size,
+            type: originalFile.type,
+            lastModified: originalFile.lastModified,
+        });
 
         // Vérifier le type de fichier
-        if (!file.type.startsWith('image/')) {
+        if (!originalFile.type.startsWith('image/')) {
+            console.error('Invalid file type:', originalFile.type);
             toast({
                 title: 'Erreur',
                 description: 'Veuillez sélectionner un fichier image.',
@@ -103,7 +333,8 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
         }
 
         // Vérifier la taille du fichier (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
+        if (originalFile.size > 10 * 1024 * 1024) {
+            console.error('File too large:', originalFile.size);
             toast({
                 title: 'Erreur',
                 description:
@@ -113,11 +344,23 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
             return;
         }
 
+        console.log('Starting upload...');
         setIsUploadingJacket(true);
 
         try {
-            // Uploader l'image via l'API
-            await booksService.uploadJacket(book.id, file);
+            // Corriger l'orientation de l'image
+            console.log('Correcting image orientation...');
+            const correctedFile = await correctImageOrientation(originalFile);
+            console.log('Corrected file details:', {
+                name: correctedFile.name,
+                size: correctedFile.size,
+                type: correctedFile.type,
+            });
+
+            // Uploader l'image corrigée via l'API
+            console.log('Uploading corrected file to API...');
+            await booksService.uploadJacket(book.id, correctedFile);
+            console.log('Upload successful');
 
             // Mettre à jour le timestamp pour forcer le rechargement de l'image
             setImageTimestamp(Date.now());
@@ -138,17 +381,41 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
             }
         } catch (error) {
             console.error("Erreur lors de l'upload de la jaquette:", error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name,
+            });
+
+            // Message d'erreur plus détaillé
+            let errorMessage =
+                'Impossible de mettre à jour la couverture. Veuillez réessayer.';
+
+            if (error.message.includes('timeout')) {
+                errorMessage =
+                    'Le téléchargement a pris trop de temps. Vérifiez votre connexion.';
+            } else if (error.message.includes('network')) {
+                errorMessage =
+                    'Problème de connexion réseau. Vérifiez votre connexion.';
+            } else if (error.message.includes('413')) {
+                errorMessage =
+                    'Le fichier est trop volumineux pour le serveur.';
+            }
+
             toast({
                 title: 'Erreur',
-                description:
-                    'Impossible de mettre à jour la couverture. Veuillez réessayer.',
+                description: errorMessage,
                 variant: 'destructive',
             });
         } finally {
+            console.log('Upload finished, cleaning up...');
             setIsUploadingJacket(false);
-            // Reset l'input file
+            // Reset l'input file de manière plus agressive
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
+                // Forcer le re-render du composant input
+                fileInputRef.current.type = 'text';
+                fileInputRef.current.type = 'file';
             }
         }
     };
@@ -213,7 +480,6 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept="image/*"
                                     onChange={handleFileChange}
                                     className="hidden"
                                 />
