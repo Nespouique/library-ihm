@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Combobox } from '@/components/ui/combobox';
+import { AuthorCombobox } from '@/components/ui/author-combobox';
 import { Camera, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import {
@@ -20,6 +21,7 @@ import {
     bookMetadataService,
 } from '@/services/api';
 import BarcodeScanner from './BarcodeScanner';
+import AuthorDialog from './AuthorDialog';
 
 const BookDialog = ({
     open,
@@ -48,6 +50,11 @@ const BookDialog = ({
 
     // États pour les messages toast
     const [toastMessage, setToastMessage] = useState(null);
+
+    // États pour l'AuthorDialog
+    const [isAuthorDialogOpen, setIsAuthorDialogOpen] = useState(false);
+    const [pendingAuthorName, setPendingAuthorName] = useState(''); // Pour stocker le nom de l'auteur à créer
+    const [pendingAuthorMessage, setPendingAuthorMessage] = useState(''); // Pour le message personnalisé
 
     const isEditMode = mode === 'edit' || bookToEdit !== null;
 
@@ -135,6 +142,16 @@ const BookDialog = ({
             loadData();
         }
     }, [open]);
+
+    // Fonction pour recharger les auteurs après création
+    const reloadAuthors = async () => {
+        try {
+            const authorsRes = await authorsService.getAuthors();
+            setAuthors(authorsRes || []);
+        } catch (error) {
+            console.error('Erreur lors du rechargement des auteurs:', error);
+        }
+    };
 
     // useEffect pour gérer les toasts
     useEffect(() => {
@@ -254,7 +271,7 @@ const BookDialog = ({
                                 authorId: foundAuthor.id.toString(),
                             };
                         } else {
-                            // Aucun auteur trouvé, programmer un toast avec le premier nom d'auteur
+                            // Aucun auteur trouvé, ouvrir l'AuthorDialog pour créer l'auteur
                             const firstAuthorName =
                                 typeof bookData.authors[0] === 'string'
                                     ? bookData.authors[0]
@@ -263,11 +280,13 @@ const BookDialog = ({
                             console.warn(
                                 `Aucun auteur trouvé parmi: ${bookData.authors.map((a) => (typeof a === 'string' ? a : a.name)).join(', ')}`
                             );
-                            setToastMessage({
-                                title: 'Auteur non existant',
-                                description: `"${firstAuthorName}" n'existe pas. Vous pouvez l'ajouter depuis la page Auteurs.`,
-                                variant: 'default',
-                            });
+
+                            // Ouvrir l'AuthorDialog pour créer l'auteur
+                            setPendingAuthorName(firstAuthorName);
+                            setPendingAuthorMessage(
+                                `L'auteur trouvé "${firstAuthorName}" n'existe pas encore, vous pouvez l'ajouter ci-dessous.`
+                            );
+                            setIsAuthorDialogOpen(true);
                             return prevData;
                         }
                     });
@@ -365,6 +384,46 @@ const BookDialog = ({
         // La recherche automatique se déclenchera via useEffect
     };
 
+    // Fonction pour gérer l'ouverture de l'AuthorDialog depuis le combobox
+    const handleCreateAuthorFromCombobox = (searchValue) => {
+        setPendingAuthorName(searchValue);
+        setPendingAuthorMessage(
+            `L'auteur "${searchValue}" n'existe pas encore, vous pouvez l'ajouter ci-dessous.`
+        );
+        setIsAuthorDialogOpen(true);
+    };
+
+    // Fonction pour gérer la création d'un auteur depuis l'AuthorDialog
+    const handleAddAuthor = async (authorData) => {
+        try {
+            const newAuthor = await authorsService.createAuthor(authorData);
+
+            // Recharger la liste des auteurs
+            await reloadAuthors();
+
+            // Sélectionner automatiquement le nouvel auteur
+            setFormData((prev) => ({
+                ...prev,
+                authorId: newAuthor.id.toString(),
+            }));
+
+            // Notification de succès
+            toast({
+                title: 'Auteur créé',
+                description: `L'auteur "${authorData.firstName} ${authorData.lastName}" a été créé avec succès.`,
+                variant: 'success',
+            });
+        } catch (error) {
+            console.error("Erreur lors de la création de l'auteur:", error);
+            toast({
+                title: 'Erreur',
+                description:
+                    "Impossible de créer l'auteur. Veuillez réessayer.",
+                variant: 'destructive',
+            });
+        }
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
@@ -437,7 +496,7 @@ const BookDialog = ({
                     {/* 3. Auteur - obligatoire, toute la largeur avec combobox */}
                     <div className="space-y-1">
                         <Label htmlFor="author">Auteur *</Label>
-                        <Combobox
+                        <AuthorCombobox
                             options={authorOptions}
                             value={formData.authorId}
                             onValueChange={(value) =>
@@ -445,8 +504,8 @@ const BookDialog = ({
                             }
                             placeholder="Choisir un auteur..."
                             searchPlaceholder="Rechercher un auteur..."
-                            emptyMessage="Aucun auteur trouvé."
                             disabled={isCreatingBook}
+                            onCreateAuthor={handleCreateAuthorFromCombobox}
                         />
                     </div>{' '}
                     {/* 4. Date de parution + Étagère - non obligatoires, moitié largeur chacun */}
@@ -536,6 +595,16 @@ const BookDialog = ({
                 open={isScannerOpen}
                 onOpenChange={setIsScannerOpen}
                 onBarcodeDetected={handleBarcodeDetected}
+            />
+
+            {/* Dialog pour créer un auteur */}
+            <AuthorDialog
+                open={isAuthorDialogOpen}
+                onOpenChange={setIsAuthorDialogOpen}
+                onAddAuthor={handleAddAuthor}
+                mode="add"
+                pendingAuthorName={pendingAuthorName}
+                pendingAuthorMessage={pendingAuthorMessage}
             />
         </Dialog>
     );

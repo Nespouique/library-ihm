@@ -17,6 +17,7 @@ const AuthorDialog = ({
     onUpdateAuthor,
     authorToEdit = null,
     mode = 'add', // 'add' ou 'edit'
+    pendingAuthorMessage = '', // Message d'introduction personnalisable
 }) => {
     const [formData, setFormData] = useState({
         firstName: '',
@@ -44,20 +45,62 @@ const AuthorDialog = ({
         }
     }, [open, isEditMode, authorToEdit]);
 
+    // Fonction pour formater le prénom (première lettre de chaque mot en majuscule)
+    const formatFirstName = (name) => {
+        if (!name) return '';
+
+        return (
+            name
+                .trim()
+                .toLowerCase()
+                // Remplacer les séparateurs multiples par des séparateurs simples
+                .replace(/\s+/g, ' ')
+                .replace(/-+/g, '-')
+                .replace(/\.+/g, '.')
+                // Diviser par les séparateurs (espace, tiret, point)
+                .split(/(\s|-|\.)/)
+                .map((part) => {
+                    // Si c'est un séparateur, le conserver tel quel
+                    if (part === ' ' || part === '-' || part === '.') {
+                        return part;
+                    }
+                    // Si c'est un mot, mettre la première lettre en majuscule
+                    if (part.length > 0) {
+                        return part.charAt(0).toUpperCase() + part.slice(1);
+                    }
+                    return part;
+                })
+                .join('')
+        );
+    };
+
+    // Fonction pour formater le nom (tout en majuscules)
+    const formatLastName = (name) => {
+        if (!name) return '';
+        return name.trim().toUpperCase();
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!isFormValid) {
             return; // Ne devrait pas arriver car le bouton est désactivé
         }
 
+        // Formater les noms avant soumission
+        const formattedData = {
+            ...formData,
+            firstName: formatFirstName(formData.firstName),
+            lastName: formatLastName(formData.lastName),
+        };
+
         if (isEditMode && onUpdateAuthor) {
             onUpdateAuthor({
-                ...formData,
+                ...formattedData,
                 id: authorToEdit.id,
             });
         } else if (onAddAuthor) {
             onAddAuthor({
-                ...formData,
+                ...formattedData,
             });
         }
 
@@ -81,6 +124,25 @@ const AuthorDialog = ({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-3">
+                    {/* Affichage du message personnalisé pour l'auteur en cours de création */}
+                    {pendingAuthorMessage && !isEditMode && (
+                        <div className="bg-primary/10 dark:bg-gray-700/40 border border-gray-300 dark:border-gray-600 rounded-lg p-3 mb-4">
+                            <p className="text-sm text-gray-800 dark:text-gray-200">
+                                {pendingAuthorMessage.includes('"') ? (
+                                    <>
+                                        {pendingAuthorMessage.split('"')[0]}"
+                                        <em>
+                                            {pendingAuthorMessage.split('"')[1]}
+                                        </em>
+                                        "{pendingAuthorMessage.split('"')[2]}
+                                    </>
+                                ) : (
+                                    pendingAuthorMessage
+                                )}
+                            </p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <Label htmlFor="firstName">Prénom *</Label>
