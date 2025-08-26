@@ -3,6 +3,7 @@
 ## Contexte
 
 Problème identifié : Risque de création de doublons d'auteurs lors de l'ajout via API ou saisie manuelle à cause de variations de formatage :
+
 - `J.R.R Tolkien` vs `J. R. R. Tolkien`
 - `Eric Emmanuel Schmidt` vs `Eric-Emmanuel Schmidt`
 - Fautes d'orthographe légères
@@ -17,6 +18,7 @@ npm install string-similarity
 ```
 
 **Pourquoi `string-similarity` :**
+
 - 4M+ téléchargements/semaine (très fiable)
 - Utilise le coefficient de Dice (optimal pour les noms)
 - API simple et performante
@@ -41,7 +43,8 @@ export function normalizeAuthorName(name) {
         .replace(/['']/g, '') // Supprimer apostrophes/guillemets
         .replace(/\s*\.\s*/g, '.') // Normaliser espaces autour des points (J. R. R. -> J.R.R.)
         .replace(/\s*-\s*/g, '-') // Normaliser espaces autour des tirets
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Supprimer accents
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Supprimer accents
         .trim();
 }
 
@@ -52,58 +55,66 @@ export function normalizeAuthorName(name) {
  * @param {number} threshold - Seuil de similarité (0.7 = 70%)
  * @returns {Array} - Auteurs similaires avec scores
  */
-export function findSimilarAuthors(newAuthorName, existingAuthors, threshold = 0.7) {
+export function findSimilarAuthors(
+    newAuthorName,
+    existingAuthors,
+    threshold = 0.7
+) {
     const candidates = [];
     const normalizedNewName = normalizeAuthorName(newAuthorName);
-    
-    existingAuthors.forEach(author => {
+
+    existingAuthors.forEach((author) => {
         const fullName = `${author.firstName} ${author.lastName}`;
         const normalizedExistingName = normalizeAuthorName(fullName);
-        
+
         // Comparaison principale : nom complet vs nom complet
         const similarity = stringSimilarity.compareTwoStrings(
             normalizedNewName,
             normalizedExistingName
         );
-        
+
         if (similarity >= threshold) {
             candidates.push({
                 author,
                 similarity,
                 confidence: Math.round(similarity * 100),
-                reason: 'Nom complet similaire'
+                reason: 'Nom complet similaire',
             });
         } else {
             // Comparaison secondaire : prénom/nom séparément
             const newParts = normalizedNewName.split(' ');
             const existingParts = normalizedExistingName.split(' ');
-            
+
             if (newParts.length >= 2 && existingParts.length >= 2) {
-                const firstNameSim = stringSimilarity.compareTwoStrings(newParts[0], existingParts[0]);
+                const firstNameSim = stringSimilarity.compareTwoStrings(
+                    newParts[0],
+                    existingParts[0]
+                );
                 const lastNameSim = stringSimilarity.compareTwoStrings(
-                    newParts.slice(1).join(' '), 
+                    newParts.slice(1).join(' '),
                     existingParts.slice(1).join(' ')
                 );
-                
+
                 const avgSimilarity = (firstNameSim + lastNameSim) / 2;
-                
+
                 if (avgSimilarity >= threshold) {
                     candidates.push({
                         author,
                         similarity: avgSimilarity,
                         confidence: Math.round(avgSimilarity * 100),
-                        reason: 'Prénom/nom similaires séparément'
+                        reason: 'Prénom/nom similaires séparément',
                     });
                 }
             }
         }
     });
-    
+
     // Supprimer les doublons et trier par similarité décroissante
-    const uniqueCandidates = candidates.filter((candidate, index, self) => 
-        index === self.findIndex(c => c.author.id === candidate.author.id)
+    const uniqueCandidates = candidates.filter(
+        (candidate, index, self) =>
+            index === self.findIndex((c) => c.author.id === candidate.author.id)
     );
-    
+
     return uniqueCandidates.sort((a, b) => b.similarity - a.similarity);
 }
 
@@ -117,19 +128,19 @@ export function getRecommendedAction(similarity) {
         return {
             level: 'auto-suggest',
             message: 'Cet auteur existe probablement déjà',
-            color: 'destructive'
+            color: 'destructive',
         };
     } else if (similarity >= 0.75) {
         return {
             level: 'confirm',
             message: 'Un auteur similaire existe',
-            color: 'warning'
+            color: 'warning',
         };
     } else {
         return {
             level: 'suggest',
             message: 'Auteur possiblement similaire trouvé',
-            color: 'default'
+            color: 'default',
         };
     }
 }
@@ -157,10 +168,10 @@ const AuthorSimilarityDialog = ({
     similarAuthors,
     onUseExisting,
     onCreateNew,
-    onViewMore
+    onViewMore,
 }) => {
     const topSimilar = similarAuthors[0];
-    
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
@@ -189,10 +200,14 @@ const AuthorSimilarityDialog = ({
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3">
                         <h4 className="font-medium text-amber-900 dark:text-amber-100 mb-1 flex items-center gap-2">
                             <Users className="h-4 w-4" />
-                            Auteur existant ({topSimilar.confidence}% de correspondance) :
+                            Auteur existant ({topSimilar.confidence}% de
+                            correspondance) :
                         </h4>
                         <p className="text-amber-800 dark:text-amber-200">
-                            <strong>"{topSimilar.author.firstName} {topSimilar.author.lastName}"</strong>
+                            <strong>
+                                "{topSimilar.author.firstName}{' '}
+                                {topSimilar.author.lastName}"
+                            </strong>
                         </p>
                         <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                             {topSimilar.reason}
@@ -208,7 +223,7 @@ const AuthorSimilarityDialog = ({
                         >
                             Utiliser l'auteur existant
                         </Button>
-                        
+
                         <Button
                             onClick={onCreateNew}
                             className="w-full"
@@ -216,14 +231,15 @@ const AuthorSimilarityDialog = ({
                         >
                             Créer quand même "{newAuthorName}"
                         </Button>
-                        
+
                         {similarAuthors.length > 1 && (
                             <Button
                                 onClick={onViewMore}
                                 className="w-full"
                                 variant="ghost"
                             >
-                                Voir les {similarAuthors.length - 1} autres suggestions
+                                Voir les {similarAuthors.length - 1} autres
+                                suggestions
                             </Button>
                         )}
                     </div>
@@ -241,7 +257,10 @@ export default AuthorSimilarityDialog;
 ```jsx
 // Modifications dans src/components/AuthorDialog.jsx
 
-import { findSimilarAuthors, normalizeAuthorName } from '@/lib/authorSimilarity';
+import {
+    findSimilarAuthors,
+    normalizeAuthorName,
+} from '@/lib/authorSimilarity';
 import AuthorSimilarityDialog from './AuthorSimilarityDialog';
 
 const AuthorDialog = ({
@@ -252,7 +271,7 @@ const AuthorDialog = ({
     const [similarityCheck, setSimilarityCheck] = useState({
         show: false,
         newAuthorName: '',
-        similarAuthors: []
+        similarAuthors: [],
     });
 
     const handleSubmit = (e) => {
@@ -268,14 +287,18 @@ const AuthorDialog = ({
         // NOUVELLE LOGIQUE : Vérification de similarité avant création
         if (!isEditMode && existingAuthors.length > 0) {
             const newAuthorName = `${formattedData.firstName} ${formattedData.lastName}`;
-            const similarAuthors = findSimilarAuthors(newAuthorName, existingAuthors, 0.7);
-            
+            const similarAuthors = findSimilarAuthors(
+                newAuthorName,
+                existingAuthors,
+                0.7
+            );
+
             if (similarAuthors.length > 0) {
                 setSimilarityCheck({
                     show: true,
                     newAuthorName,
                     similarAuthors,
-                    formattedData // Stocker les données formatées
+                    formattedData, // Stocker les données formatées
                 });
                 return; // Arrêter ici et attendre la décision utilisateur
             }
@@ -294,14 +317,22 @@ const AuthorDialog = ({
     const handleUseExistingAuthor = (existingAuthor) => {
         // Utiliser l'auteur existant au lieu de créer un nouveau
         onAddAuthor(existingAuthor);
-        setSimilarityCheck({ show: false, newAuthorName: '', similarAuthors: [] });
+        setSimilarityCheck({
+            show: false,
+            newAuthorName: '',
+            similarAuthors: [],
+        });
         onOpenChange(false);
     };
 
     const handleCreateNewAuthor = () => {
         // Forcer la création du nouvel auteur
         onAddAuthor(similarityCheck.formattedData);
-        setSimilarityCheck({ show: false, newAuthorName: '', similarAuthors: [] });
+        setSimilarityCheck({
+            show: false,
+            newAuthorName: '',
+            similarAuthors: [],
+        });
         onOpenChange(false);
     };
 
@@ -315,12 +346,21 @@ const AuthorDialog = ({
             {/* NOUVEAU : Dialog de vérification de similarité */}
             <AuthorSimilarityDialog
                 open={similarityCheck.show}
-                onOpenChange={(open) => !open && setSimilarityCheck({ show: false, newAuthorName: '', similarAuthors: [] })}
+                onOpenChange={(open) =>
+                    !open &&
+                    setSimilarityCheck({
+                        show: false,
+                        newAuthorName: '',
+                        similarAuthors: [],
+                    })
+                }
                 newAuthorName={similarityCheck.newAuthorName}
                 similarAuthors={similarityCheck.similarAuthors}
                 onUseExisting={handleUseExistingAuthor}
                 onCreateNew={handleCreateNewAuthor}
-                onViewMore={() => {/* Implémenter liste étendue si besoin */}}
+                onViewMore={() => {
+                    /* Implémenter liste étendue si besoin */
+                }}
             />
         </>
     );
@@ -361,13 +401,13 @@ Dans `BookDialog.jsx` et `AuthorsPage.jsx`, passer la liste des auteurs :
 
 ## Cas d'Usage Testés
 
-| Nouveau | Existant | Score | Action |
-|---------|----------|-------|--------|
-| J.R.R Tolkien | J. R. R. Tolkien | ~95% | Auto-suggest |
-| Eric Emmanuel Schmidt | Eric-Emmanuel Schmidt | ~90% | Confirm |
-| Stephen King | Stephen Kind | ~85% | Confirm |
-| Isaac Asimov | Isaac Azimov | ~80% | Confirm |
-| George Orwell | George R.R. Martin | ~40% | Ignore |
+| Nouveau               | Existant              | Score | Action       |
+| --------------------- | --------------------- | ----- | ------------ |
+| J.R.R Tolkien         | J. R. R. Tolkien      | ~95%  | Auto-suggest |
+| Eric Emmanuel Schmidt | Eric-Emmanuel Schmidt | ~90%  | Confirm      |
+| Stephen King          | Stephen Kind          | ~85%  | Confirm      |
+| Isaac Asimov          | Isaac Azimov          | ~80%  | Confirm      |
+| George Orwell         | George R.R. Martin    | ~40%  | Ignore       |
 
 ## Optimisations Futures Possibles
 
@@ -396,17 +436,19 @@ touch src/components/AuthorSimilarityDialog.jsx
 ## Impact Utilisateur
 
 ✅ **Avantages :**
+
 - Réduit drastiquement les doublons
-- Interface claire et non intrusive  
+- Interface claire et non intrusive
 - Contrôle total gardé par l'utilisateur
 - Apprentissage progressif des patterns
 
 ⚠️ **Considérations :**
+
 - Légère augmentation du temps de création d'auteur
 - Nécessite formation utilisateur initiale
 - Faux positifs possibles sur noms très courts
 
 ---
 
-*Dernière mise à jour : Juillet 2025*
-*Version recommandée : v1.0 (détection basique avec string-similarity)*
+_Dernière mise à jour : Juillet 2025_
+_Version recommandée : v1.0 (détection basique avec string-similarity)_
