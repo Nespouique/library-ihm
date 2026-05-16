@@ -52,9 +52,13 @@ const KubesPage = () => {
 
             // Créer un mapping ID auteur -> nom complet auteur
             const authorsMap = {};
+            const authorsFirstNameMap = {};
+            const authorsLastNameMap = {};
             authorsResponse.forEach((author) => {
                 authorsMap[author.id] =
                     `${author.firstName} ${author.lastName}`;
+                authorsFirstNameMap[author.id] = author.firstName;
+                authorsLastNameMap[author.id] = author.lastName;
             });
 
             const transformedBooks = booksResponse.map((book) => ({
@@ -63,6 +67,12 @@ const KubesPage = () => {
                 author: book.author
                     ? authorsMap[book.author] || book.author
                     : 'Auteur inconnu',
+                authorFirstName: book.author
+                    ? authorsFirstNameMap[book.author] || ''
+                    : '',
+                authorLastName: book.author
+                    ? authorsLastNameMap[book.author] || ''
+                    : '',
                 shelf: book.shelf,
                 isbn: book.isbn,
                 description: book.description,
@@ -356,6 +366,18 @@ const KubesPage = () => {
             setSelectedShelf(shelf);
             // Filtrer les livres pour cette étagère
             const shelfBooks = books.filter((book) => book.shelf === shelf.id);
+            // Trier par nom d'auteur, prénom d'auteur, puis titre
+            shelfBooks.sort((a, b) => {
+                const lastNameCompare = (a.authorLastName || '').localeCompare(
+                    b.authorLastName || ''
+                );
+                if (lastNameCompare !== 0) return lastNameCompare;
+                const firstNameCompare = (
+                    a.authorFirstName || ''
+                ).localeCompare(b.authorFirstName || '');
+                if (firstNameCompare !== 0) return firstNameCompare;
+                return a.title.localeCompare(b.title);
+            });
             setSelectedShelfBooks(shelfBooks);
         } else {
             // Afficher un toast si aucune étagère n'est associée à ce kube

@@ -89,10 +89,9 @@ const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
                                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground pl-2">
                                     {books.map((book) => (
                                         <li key={book.id}>
-                                            {book.title}{' '}
-                                            <span className="text-xs text-gray-400">
-                                                ({book.author})
-                                            </span>
+                                            {book.authorLastName}{' '}
+                                            {book.authorFirstName} -{' '}
+                                            {book.title}
                                         </li>
                                     ))}
                                 </ul>

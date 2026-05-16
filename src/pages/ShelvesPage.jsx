@@ -31,9 +31,13 @@ const ShelvesPage = () => {
 
             // Créer un mapping ID auteur -> nom complet auteur
             const authorsMap = {};
+            const authorsFirstNameMap = {};
+            const authorsLastNameMap = {};
             authorsResponse.forEach((author) => {
                 authorsMap[author.id] =
                     `${author.firstName} ${author.lastName}`;
+                authorsFirstNameMap[author.id] = author.firstName;
+                authorsLastNameMap[author.id] = author.lastName;
             });
 
             const transformedBooks = booksResponse.map((book) => ({
@@ -41,8 +45,14 @@ const ShelvesPage = () => {
                 title: book.title,
                 author: book.author
                     ? authorsMap[book.author] || book.author
-                    : 'Auteur inconnu', // Utiliser le nom complet de l'auteur
-                shelf: book.shelf, // ID de l'étagère
+                    : 'Auteur inconnu',
+                authorFirstName: book.author
+                    ? authorsFirstNameMap[book.author] || ''
+                    : '',
+                authorLastName: book.author
+                    ? authorsLastNameMap[book.author] || ''
+                    : '',
+                shelf: book.shelf,
                 isbn: book.isbn,
                 description: book.description,
                 publicationDate: book.date,
@@ -231,8 +241,18 @@ const ShelvesPage = () => {
             shelfBooks = books.filter((book) => book.shelf === shelf.id);
         }
 
-        // Trier les livres par ordre alphabétique (titre)
-        return shelfBooks.sort((a, b) => a.title.localeCompare(b.title));
+        // Trier les livres par nom d'auteur, prénom d'auteur, puis titre
+        return shelfBooks.sort((a, b) => {
+            const lastNameCompare = (a.authorLastName || '').localeCompare(
+                b.authorLastName || ''
+            );
+            if (lastNameCompare !== 0) return lastNameCompare;
+            const firstNameCompare = (a.authorFirstName || '').localeCompare(
+                b.authorFirstName || ''
+            );
+            if (firstNameCompare !== 0) return firstNameCompare;
+            return a.title.localeCompare(b.title);
+        });
     };
 
     return (
