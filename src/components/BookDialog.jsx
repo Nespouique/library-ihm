@@ -85,10 +85,7 @@ const BookDialog = ({
 
     // Validation des champs obligatoires
     const isFormValid =
-        formData.isbn.trim() &&
-        formData.title.trim() &&
-        formData.authorId &&
-        isDateValid; // Inclure la validation de la date
+        formData.title.trim() && formData.authorId && isDateValid; // Inclure la validation de la date
 
     // Reset des champs quand la popup se ferme ou pré-remplir en mode édition
     useEffect(() => {
@@ -331,7 +328,7 @@ const BookDialog = ({
             toast({
                 title: 'Erreur',
                 description:
-                    'Veuillez remplir tous les champs obligatoires (ISBN, Titre, Auteur).',
+                    'Veuillez remplir tous les champs obligatoires (Titre, Auteur).',
                 variant: 'destructive',
             });
             return;
@@ -439,9 +436,9 @@ const BookDialog = ({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    {/* 1. ISBN - obligatoire, toute la largeur avec bouton scan intégré */}
+                    {/* 1. ISBN - optionnel, toute la largeur avec bouton scan intégré */}
                     <div className="space-y-1">
-                        <Label htmlFor="isbn">ISBN *</Label>
+                        <Label htmlFor="isbn">ISBN</Label>
                         <div className="relative">
                             <Input
                                 id="isbn"
@@ -454,7 +451,6 @@ const BookDialog = ({
                                 }
                                 placeholder="ISBN du livre"
                                 className="pr-20"
-                                required
                                 disabled={isCreatingBook}
                             />
                             {/* Indicateur de chargement */}
