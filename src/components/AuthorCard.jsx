@@ -13,7 +13,7 @@ import { Button } from './ui/button';
 import { toast } from './ui/use-toast';
 import { authorsService } from '../services/api';
 
-const AuthorCard = ({ author, index, onClick, onDelete, onEdit }) => {
+const AuthorCard = ({ author, onClick, onDelete, onEdit }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const fullName = `${author.firstName} ${author.lastName}`;

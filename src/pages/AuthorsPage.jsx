@@ -316,7 +316,7 @@ const AuthorsPage = () => {
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredAuthors.length > 0 ? (
-                        filteredAuthors.map((author, index) => (
+                        filteredAuthors.map((author) => (
                             <div
                                 key={author.id}
                                 ref={(el) =>
@@ -326,7 +326,6 @@ const AuthorsPage = () => {
                             >
                                 <AuthorCard
                                     author={author}
-                                    index={index}
                                     onClick={() => setSelectedAuthor(author)}
                                     onDelete={handleAuthorDelete}
                                     onEdit={handleEditAuthor}

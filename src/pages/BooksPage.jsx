@@ -364,7 +364,7 @@ const BooksPage = ({ initialSearchTerm }) => {
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredBooks.length > 0 ? (
-                        filteredBooks.map((book, index) => (
+                        filteredBooks.map((book) => (
                             <div
                                 key={book.id}
                                 ref={(el) => (bookRefs.current[book.id] = el)}
@@ -372,7 +372,6 @@ const BooksPage = ({ initialSearchTerm }) => {
                             >
                                 <BookCard
                                     book={book}
-                                    index={index}
                                     onClick={() => setSelectedBook(book)}
                                     onDelete={handleBookDelete}
                                     onEdit={handleEditBook}

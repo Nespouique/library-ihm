@@ -305,11 +305,10 @@ const ShelvesPage = () => {
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredShelves.length > 0 ? (
-                        filteredShelves.map((shelf, index) => (
+                        filteredShelves.map((shelf) => (
                             <div key={shelf.id} className="h-full">
                                 <ShelfCard
                                     shelf={shelf}
-                                    index={index}
                                     onClick={() => setSelectedShelf(shelf)}
                                     onDelete={handleShelfDelete}
                                     onEdit={handleEditShelf}

@@ -13,7 +13,7 @@ import { Button } from './ui/button';
 import { toast } from './ui/use-toast';
 import { shelvesService } from '../services/api';
 
-const ShelfCard = ({ shelf, index, onClick, onDelete, onEdit }) => {
+const ShelfCard = ({ shelf, onClick, onDelete, onEdit }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
