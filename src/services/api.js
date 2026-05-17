@@ -342,6 +342,7 @@ export class ShelvesService extends ApiService {
 export class GoogleBooksService {
     constructor() {
         this.baseUrl = GOOGLE_BOOKS_BASE_URL;
+        this.apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || '';
     }
 
     async searchByISBN(isbn) {
@@ -351,8 +352,9 @@ export class GoogleBooksService {
                 throw new Error('Format ISBN invalide');
             }
 
+            const keyParam = this.apiKey ? `&key=${this.apiKey}` : '';
             const response = await fetch(
-                `${this.baseUrl}/volumes?q=isbn:${cleanISBN}`
+                `${this.baseUrl}/volumes?q=isbn:${cleanISBN}${keyParam}`
             );
 
             if (!response.ok) {
