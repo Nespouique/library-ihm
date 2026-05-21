@@ -47,14 +47,14 @@ const AuthorDetailDialog = ({
                     </div>
                 </DialogHeader>
 
-                <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="space-y-3 py-2 sm:py-4">
                     {books.length > 0 && (
                         <div>
                             <h4 className="font-medium mb-2 text-foreground flex items-center">
                                 <BookOpen className="h-5 w-5 mr-2 text-primary" />
                                 Livres dans la bibliothèque ({books.length}) :
                             </h4>
-                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground pl-2">
+                            <ul className="list-disc list-outside space-y-1.5 text-sm text-muted-foreground pl-5 break-words">
                                 {books.map((book) => (
                                     <li key={book.id}>{book.title}</li>
                                 ))}
@@ -69,7 +69,7 @@ const AuthorDetailDialog = ({
                     )}
                 </div>
 
-                <DialogFooter className="pt-4">
+                <DialogFooter className="pt-4 flex-col-reverse gap-2 sm:flex-row sm:gap-0">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}

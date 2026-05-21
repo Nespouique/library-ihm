@@ -258,9 +258,7 @@ const ShelvesPage = () => {
     return (
         <div className="space-y-8">
             <div className="text-center">
-                <h1 className="text-4xl font-bold main-title-text">
-                    Gestion des Étagères
-                </h1>
+                <h1 className="text-4xl font-bold main-title-text">Étagères</h1>
             </div>
 
             <SearchBar
@@ -303,10 +301,13 @@ const ShelvesPage = () => {
                     </button>
                 </div>
             ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredShelves.length > 0 ? (
                         filteredShelves.map((shelf) => (
-                            <div key={shelf.id} className="h-full">
+                            <div
+                                key={shelf.id}
+                                className="h-full min-w-0 max-w-full"
+                            >
                                 <ShelfCard
                                     shelf={shelf}
                                     onClick={() => setSelectedShelf(shelf)}

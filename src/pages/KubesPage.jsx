@@ -393,112 +393,123 @@ const KubesPage = () => {
     const renderInteractiveSVG = () => {
         return (
             <div className="w-full">
-                <div className="relative w-full group">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 1659 812"
-                        className="w-full h-auto"
-                        style={{ minHeight: '60vh', maxHeight: '75vh' }}
-                    >
-                        <g id="kubes">
-                            {/* Générer tous les kubes dynamiquement en fonction du contenu du SVG */}
-                            {kubeDataLoaded &&
-                                getAvailableKubeIds().map((kubeId) => {
-                                    const isHighlighted =
-                                        highlightedKube === kubeId;
+                <p className="mb-2 text-center text-sm text-muted-foreground sm:hidden">
+                    Faites glisser pour explorer le plan.
+                </p>
 
-                                    // Coordonnées et dimensions pour chaque kube (chargées dynamiquement depuis le SVG)
-                                    const kubeData = getKubeDataSync(kubeId);
-                                    if (!kubeData) return null;
+                <div className="relative max-h-[70vh] w-full overflow-auto overscroll-contain rounded-xl border border-border bg-card/60 p-2 shadow-sm sm:max-h-none sm:overflow-visible sm:p-0 group">
+                    <div className="relative min-w-[900px] sm:min-w-0">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1659 812"
+                            className="w-full h-auto sm:min-h-[60vh] sm:max-h-[75vh]"
+                        >
+                            <g id="kubes">
+                                {/* Générer tous les kubes dynamiquement en fonction du contenu du SVG */}
+                                {kubeDataLoaded &&
+                                    getAvailableKubeIds().map((kubeId) => {
+                                        const isHighlighted =
+                                            highlightedKube === kubeId;
 
-                                    return (
-                                        <g key={kubeId} id={kubeId}>
-                                            <rect
-                                                id={`outer-${kubeId}`}
-                                                className="cls-1"
-                                                x={kubeData.outer.x}
-                                                y={kubeData.outer.y}
-                                                width={kubeData.outer.width}
-                                                height={kubeData.outer.height}
-                                            />
-                                            <rect
-                                                className={`${kubeData.innerClass} kube-inner ${isHighlighted ? 'kube-highlighted' : ''}`}
-                                                x={kubeData.inner.x}
-                                                y={kubeData.inner.y}
-                                                width={kubeData.inner.width}
-                                                height={kubeData.inner.height}
-                                                onClick={() =>
-                                                    handleKubeClick(kubeId)
-                                                }
-                                            />
-                                            {/* Texte du numéro du kube */}
-                                            <text
-                                                x={
-                                                    kubeData.inner.x +
-                                                    kubeData.inner.width / 2
-                                                }
-                                                y={
-                                                    kubeData.inner.y +
-                                                    kubeData.inner.height / 2
-                                                }
-                                                textAnchor="middle"
-                                                dominantBaseline="middle"
-                                                fontSize="18"
-                                                fontWeight="bold"
-                                                fill="#000"
-                                                pointerEvents="none"
-                                            >
-                                                {kubeId.replace('kube', '')}
-                                            </text>
-                                        </g>
-                                    );
-                                })}
-                        </g>
-                    </svg>
+                                        // Coordonnées et dimensions pour chaque kube (chargées dynamiquement depuis le SVG)
+                                        const kubeData =
+                                            getKubeDataSync(kubeId);
+                                        if (!kubeData) return null;
 
-                    {/* Boutons flottants d'édition et suppression - visibles au survol */}
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="hidden">
-                            <Label
-                                htmlFor="svg-edit-upload"
-                                className="sr-only"
-                            >
-                                Modifier le fichier SVG
-                            </Label>
-                            <Input
-                                id="svg-edit-upload"
-                                type="file"
-                                accept=".svg,image/svg+xml"
-                                onChange={handleFileUpload}
-                                disabled={isUploading}
-                                className="cursor-pointer"
-                            />
-                        </div>
+                                        return (
+                                            <g key={kubeId} id={kubeId}>
+                                                <rect
+                                                    id={`outer-${kubeId}`}
+                                                    className="cls-1"
+                                                    x={kubeData.outer.x}
+                                                    y={kubeData.outer.y}
+                                                    width={kubeData.outer.width}
+                                                    height={
+                                                        kubeData.outer.height
+                                                    }
+                                                />
+                                                <rect
+                                                    className={`${kubeData.innerClass} kube-inner ${isHighlighted ? 'kube-highlighted' : ''}`}
+                                                    x={kubeData.inner.x}
+                                                    y={kubeData.inner.y}
+                                                    width={kubeData.inner.width}
+                                                    height={
+                                                        kubeData.inner.height
+                                                    }
+                                                    onClick={() =>
+                                                        handleKubeClick(kubeId)
+                                                    }
+                                                />
+                                                {/* Texte du numéro du kube */}
+                                                <text
+                                                    x={
+                                                        kubeData.inner.x +
+                                                        kubeData.inner.width / 2
+                                                    }
+                                                    y={
+                                                        kubeData.inner.y +
+                                                        kubeData.inner.height /
+                                                            2
+                                                    }
+                                                    textAnchor="middle"
+                                                    dominantBaseline="middle"
+                                                    fontSize="18"
+                                                    fontWeight="bold"
+                                                    fill="#000"
+                                                    pointerEvents="none"
+                                                >
+                                                    {kubeId.replace('kube', '')}
+                                                </text>
+                                            </g>
+                                        );
+                                    })}
+                            </g>
+                        </svg>
 
-                        <div className="flex gap-2">
-                            <Button
-                                onClick={() =>
-                                    document
-                                        .getElementById('svg-edit-upload')
-                                        .click()
-                                }
-                                disabled={isUploading || isDeleting}
-                                size="sm"
-                                className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg backdrop-blur-sm rounded-full w-10 h-10 p-0"
-                                title="Modifier le fichier SVG"
-                            >
-                                <Pencil className="h-4 w-4" />
-                            </Button>
+                        {/* Boutons flottants d'édition et suppression */}
+                        <div className="absolute bottom-3 right-3 opacity-100 transition-opacity duration-300 sm:bottom-4 sm:right-4 sm:opacity-0 sm:group-hover:opacity-100">
+                            <div className="hidden">
+                                <Label
+                                    htmlFor="svg-edit-upload"
+                                    className="sr-only"
+                                >
+                                    Modifier le fichier SVG
+                                </Label>
+                                <Input
+                                    id="svg-edit-upload"
+                                    type="file"
+                                    accept=".svg,image/svg+xml"
+                                    onChange={handleFileUpload}
+                                    disabled={isUploading}
+                                    className="cursor-pointer"
+                                />
+                            </div>
 
-                            <Button
-                                onClick={handleDeleteClick}
-                                disabled={isUploading || isDeleting}
-                                size="sm"
-                                className="bg-red-500/90 hover:bg-red-500 text-white shadow-lg backdrop-blur-sm rounded-full w-10 h-10 p-0"
-                                title="Supprimer le fichier SVG"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={() =>
+                                        document
+                                            .getElementById('svg-edit-upload')
+                                            .click()
+                                    }
+                                    disabled={isUploading || isDeleting}
+                                    size="sm"
+                                    className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg backdrop-blur-sm rounded-full h-11 w-11 p-0 sm:h-10 sm:w-10"
+                                    title="Modifier le fichier SVG"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+
+                                <Button
+                                    onClick={handleDeleteClick}
+                                    disabled={isUploading || isDeleting}
+                                    size="sm"
+                                    className="bg-red-500/90 hover:bg-red-500 text-white shadow-lg backdrop-blur-sm rounded-full h-11 w-11 p-0 sm:h-10 sm:w-10"
+                                    title="Supprimer le fichier SVG"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

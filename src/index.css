@@ -72,12 +72,14 @@
     html {
         /* Force l'affichage permanent de la barre de défilement pour éviter le décalage horizontal */
         overflow-y: scroll;
+        overflow-x: hidden;
         /* Propriété moderne pour les navigateurs récents - réserve l'espace pour la scrollbar */
         scrollbar-gutter: stable;
     }
 
     body {
         @apply bg-background text-foreground min-h-screen; /* Solid background */
+        overflow-x: hidden;
         font-feature-settings:
             'rlig' 1,
             'calt' 1;
@@ -133,13 +135,30 @@
         @apply p-1.5 cursor-pointer hover:text-primary font-medium text-xs text-gray-700 rounded-md hover:bg-primary/10 transition-all duration-150;
     }
 
+    .alphabet-page {
+        @apply relative;
+    }
+
+    .alphabet-content {
+        @apply pr-10 md:pr-12;
+    }
+
     .alphabet-scroller-horizontal {
-        @apply w-full mx-auto;
-        max-width: none;
+        @apply fixed w-8 rounded-full border border-border/50 bg-background/80 px-0.5 py-1 shadow-lg backdrop-blur-md;
+        top: calc(3.5rem + 0.5rem);
+        right: max(0.25rem, calc((100vw - 80rem) / 2 + 0.25rem));
+        bottom: calc(5.5rem + env(safe-area-inset-bottom) + 0.5rem);
+        z-index: 35;
+        touch-action: none;
+    }
+
+    .alphabet-scroller-track {
+        @apply flex h-full flex-col items-stretch justify-between gap-0 overflow-hidden p-0;
     }
 
     .alphabet-letter-btn {
-        @apply w-7 h-7 flex items-center justify-center text-sm font-medium text-muted-foreground rounded-md border border-border/30 bg-background/60 backdrop-blur-sm cursor-pointer select-none flex-shrink-0 shadow-sm;
+        @apply flex h-auto min-w-0 flex-1 items-center justify-center rounded-full border-0 bg-transparent p-0 text-[10px] font-medium leading-none text-muted-foreground shadow-none backdrop-blur-0 cursor-pointer select-none;
+        min-height: 13px;
         transition:
             color 0.1s ease,
             border-color 0.1s ease,
@@ -148,20 +167,46 @@
     }
 
     .alphabet-letter-btn:hover {
-        @apply text-primary border-primary/50 bg-primary/10 shadow-md;
+        @apply bg-transparent text-primary shadow-none;
+    }
+
+    .alphabet-letter-btn:active:not(:disabled) {
+        @apply bg-primary/15 text-primary;
+    }
+
+    .alphabet-letter-btn:disabled {
+        @apply cursor-not-allowed bg-transparent text-muted-foreground/25 shadow-none;
+    }
+
+    .alphabet-letter-btn:disabled:hover {
+        @apply bg-transparent text-muted-foreground/25 shadow-none;
+    }
+
+    @media (min-width: 768px) {
+        .alphabet-scroller-horizontal {
+            @apply w-9;
+            top: calc(4rem + 1rem);
+            bottom: 1rem;
+            right: max(0.75rem, calc((100vw - 80rem) / 2 + 0.75rem));
+        }
+
+        .alphabet-letter-btn {
+            @apply text-xs;
+            min-height: 16px;
+        }
     }
 }
 
 .book-card {
-    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full flex flex-col;
+    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full max-w-full min-w-0 overflow-hidden flex flex-col;
 }
 
 .author-card {
-    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full flex flex-col;
+    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full max-w-full min-w-0 overflow-hidden flex flex-col;
 }
 
 .shelf-card {
-    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full flex flex-col;
+    @apply bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200 h-full max-w-full min-w-0 overflow-hidden flex flex-col;
 }
 
 .status-badge {
@@ -178,7 +223,7 @@
 }
 
 .truncate-text {
-    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+    @apply min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap;
 }
 
 /* Styles pour les kubes */

@@ -48,7 +48,7 @@ const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 max-h-[60vh] overflow-y-auto pr-2 space-y-4">
+                <div className="py-2 sm:py-4 space-y-4">
                     {/* Emplacement avec icône MapPin - affiché seulement si les kubes sont disponibles */}
                     {kubesAvailable && (
                         <div className="flex items-center">
@@ -77,16 +77,16 @@ const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
                     )}
 
                     {/* Liste des livres avec icône List */}
-                    <div className="flex items-start">
+                    <div className="flex items-start min-w-0">
                         <List className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <p className="font-medium mb-2">
                                 {books.length > 0
                                     ? `${books.length} livre${books.length > 1 ? 's' : ''} dans cette étagère :`
                                     : '0 livre dans cette étagère :'}
                             </p>
                             {books.length > 0 ? (
-                                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground pl-2">
+                                <ul className="list-disc list-outside space-y-1.5 text-sm text-muted-foreground pl-5 break-words">
                                     {books.map((book) => (
                                         <li key={book.id}>
                                             {book.authorLastName}{' '}
@@ -104,7 +104,7 @@ const ShelfDetailDialog = ({ shelf, books = [], open, onOpenChange }) => {
                     </div>
                 </div>
 
-                <DialogFooter className="pt-4">
+                <DialogFooter className="pt-4 flex-col-reverse gap-2 sm:flex-row sm:gap-0">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}

@@ -69,11 +69,11 @@ const BookCard = ({ book, onClick, onDelete, onEdit }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.15 }}
-            className="book-card group"
+            className="book-card group max-w-full min-w-0 overflow-hidden"
         >
             {/* Zone cliquable : contenu principal du livre */}
             <div
-                className="flex items-start space-x-4 flex-grow cursor-pointer"
+                className="flex min-w-0 max-w-full flex-grow cursor-pointer items-start gap-4 overflow-hidden"
                 onClick={onClick}
             >
                 <div className="flex-shrink-0">
@@ -88,50 +88,56 @@ const BookCard = ({ book, onClick, onDelete, onEdit }) => {
                     >
                         {book.title}
                     </h3>
-                    <div className="space-y-1.5">
+                    <div className="min-w-0 space-y-1.5">
                         <div
-                            className="flex items-center text-sm text-muted-foreground"
+                            className="flex min-w-0 items-center text-sm text-muted-foreground"
                             title={book.author}
                         >
                             <User className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                            <span className="truncate-text block">
+                            <span className="truncate-text block min-w-0 flex-1">
                                 {book.author}
                             </span>
                         </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
+                        <div className="flex min-w-0 items-center text-sm text-muted-foreground">
                             <Hash className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                            <span>ISBN: {book.isbn}</span>
+                            <span
+                                className="min-w-0 flex-1 truncate"
+                                title={book.isbn}
+                            >
+                                ISBN: {book.isbn}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
-            {book.shelf && (
-                <div className="flex items-center justify-between text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+            <div className="flex min-w-0 items-center justify-between gap-2 text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+                {book.shelf ? (
                     <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground truncate-text"
+                        className="block min-w-0 max-w-full px-2 py-0.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground truncate-text"
                         title={book.shelf}
                     >
                         {book.shelf}
                     </span>
-                    <div className="flex items-center gap-1">
-                        {' '}
-                        <button
-                            className="p-1.5 rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
-                            onClick={handleEditClick}
-                            title="Modifier le livre"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            className="p-1.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors group/delete"
-                            onClick={handleDeleteClick}
-                            title="Supprimer le livre"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    </div>
+                ) : (
+                    <span className="min-w-0"></span>
+                )}
+                <div className="flex shrink-0 items-center gap-1">
+                    <button
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
+                        onClick={handleEditClick}
+                        title="Modifier le livre"
+                    >
+                        <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors group/delete"
+                        onClick={handleDeleteClick}
+                        title="Supprimer le livre"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </button>
                 </div>
-            )}{' '}
+            </div>{' '}
             {/* Dialog de confirmation de suppression */}
             <Dialog
                 open={showDeleteConfirm}

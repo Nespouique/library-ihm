@@ -143,7 +143,7 @@ const AuthorDialog = ({
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="space-y-1">
                             <Label htmlFor="firstName">Prénom *</Label>
                             <Input
@@ -176,7 +176,7 @@ const AuthorDialog = ({
                         </div>
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-3">
+                    <div className="flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end sm:space-x-2 sm:gap-0">
                         <Button
                             type="button"
                             variant="outline"

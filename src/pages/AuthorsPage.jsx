@@ -267,18 +267,23 @@ const AuthorsPage = () => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="alphabet-page space-y-8">
             <div className="text-center">
-                <h1 className="text-4xl font-bold main-title-text">
-                    Gestion des Auteurs
-                </h1>
+                <h1 className="text-4xl font-bold main-title-text">Auteurs</h1>
             </div>
-            <SearchBar
-                placeholder="Rechercher un auteur..."
-                value={searchTerm}
-                onChange={setSearchTerm}
+            <div className="alphabet-content">
+                <SearchBar
+                    placeholder="Rechercher un auteur..."
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                />
+            </div>
+            <AlphabeticalScroller
+                items={filteredAuthors}
+                getKey={(author) => author.lastName}
+                onLetterClick={handleLetterScroll}
+                ariaLabel="Navigation alphabétique des auteurs"
             />
-            <AlphabeticalScroller onLetterClick={handleLetterScroll} />
 
             {/* Indicateur de chargement */}
             {loading ? (
@@ -314,7 +319,7 @@ const AuthorsPage = () => {
                     </button>
                 </div>
             ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="alphabet-content grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredAuthors.length > 0 ? (
                         filteredAuthors.map((author) => (
                             <div
@@ -322,7 +327,7 @@ const AuthorsPage = () => {
                                 ref={(el) =>
                                     (authorRefs.current[author.id] = el)
                                 }
-                                className="h-full"
+                                className="h-full min-w-0 max-w-full"
                             >
                                 <AuthorCard
                                     author={author}

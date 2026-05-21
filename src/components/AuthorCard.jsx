@@ -78,11 +78,11 @@ const AuthorCard = ({ author, onClick, onDelete, onEdit }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15 }}
-                className="author-card group"
+                className="author-card group max-w-full min-w-0 overflow-hidden"
             >
                 {/* Zone cliquable : contenu principal de l'auteur */}
                 <div
-                    className="flex items-center space-x-4 flex-grow cursor-pointer"
+                    className="flex min-w-0 max-w-full flex-grow cursor-pointer items-center gap-4 overflow-hidden"
                     onClick={onClick}
                 >
                     <div className="flex-shrink-0">
@@ -105,18 +105,18 @@ const AuthorCard = ({ author, onClick, onDelete, onEdit }) => {
                 </div>
 
                 {/* Boutons d'action */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                    <div></div> {/* Espace vide à gauche */}
-                    <div className="flex items-center gap-1">
+                <div className="flex min-w-0 items-center justify-between gap-2 mt-3 pt-3 border-t border-border">
+                    <div className="min-w-0"></div> {/* Espace vide à gauche */}
+                    <div className="flex shrink-0 items-center gap-1">
                         <button
-                            className="p-1.5 rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
                             onClick={handleEditClick}
                             title="Modifier l'auteur"
                         >
                             <Edit className="h-4 w-4" />
                         </button>
                         <button
-                            className="p-1.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors group/delete"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors group/delete"
                             onClick={handleDeleteClick}
                             title="Supprimer l'auteur"
                         >

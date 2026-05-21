@@ -430,11 +430,11 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                     <DialogDescription>{book.author}</DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="py-2 sm:py-4">
                     {/* Layout carte d'identité : Image à gauche + Champs à droite */}
-                    <div className="flex gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row">
                         {/* Image à gauche - largeur automatique */}
-                        <div className="flex-shrink-0 w-auto">
+                        <div className="flex-shrink-0 w-auto self-center sm:self-start">
                             <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden w-[117px] h-44 flex items-center justify-center relative group">
                                 {!imageLoaded && (
                                     <Skeleton className="w-full h-full rounded-xl" />
@@ -466,7 +466,7 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                                 <button
                                     onClick={handleCameraClick}
                                     disabled={isUploadingJacket}
-                                    className="absolute bottom-2 right-2 bg-black/70 hover:bg-black/80 text-white p-2 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center bg-black/70 hover:bg-black/80 text-white rounded-full transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Changer la couverture"
                                 >
                                     {isUploadingJacket ? (
@@ -498,10 +498,10 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                         </div>
 
                         {/* Champs à droite - 2/3 de la largeur */}
-                        <div className="flex-1 space-y-3">
+                        <div className="flex-1 space-y-3 text-sm sm:text-base">
                             {/* ISBN en premier */}
                             {book.isbn && (
-                                <div className="flex items-center">
+                                <div className="flex items-start">
                                     <Info className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
                                     <p>
                                         <span className="font-medium">
@@ -513,7 +513,7 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                             )}
 
                             {/* Date de parution en deuxième */}
-                            <div className="flex items-center">
+                            <div className="flex items-start">
                                 <CalendarDays className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
                                 <p>
                                     <span className="font-medium">
@@ -525,7 +525,7 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
 
                             {/* Nom de l'étagère en troisième avec icône SquareLibrary */}
                             {book.shelf && (
-                                <div className="flex items-center">
+                                <div className="flex items-start">
                                     <SquareLibrary className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
                                     <p>
                                         <span className="font-medium">
@@ -584,7 +584,7 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                     </div>
                 </div>
 
-                <DialogFooter className="pt-4 flex justify-between">
+                <DialogFooter className="pt-4 flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:gap-0">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}

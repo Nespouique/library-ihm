@@ -305,28 +305,33 @@ const BooksPage = ({ initialSearchTerm }) => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="alphabet-page space-y-8">
             <div className="text-center">
-                <h1 className="text-4xl font-bold main-title-text">
-                    Gestion des Livres
-                </h1>
+                <h1 className="text-4xl font-bold main-title-text">Livres</h1>
             </div>
-            <SearchBar
-                placeholder="Rechercher par titre, auteur ou ISBN..."
-                value={searchTerm}
-                onChange={(value) => {
-                    setSearchTerm(value);
-                    // Update URL without navigating
-                    const newUrl = value
-                        ? `/?search=${encodeURIComponent(value)}`
-                        : '/';
-                    window.history.replaceState({}, '', newUrl);
-                }}
-                rightIcon={<Dices className="h-6 w-6" />}
-                onRightIconClick={handleRandomBook}
-                rightIconTitle="Livre aléatoire"
+            <div className="alphabet-content">
+                <SearchBar
+                    placeholder="Rechercher par titre, auteur ou ISBN..."
+                    value={searchTerm}
+                    onChange={(value) => {
+                        setSearchTerm(value);
+                        // Update URL without navigating
+                        const newUrl = value
+                            ? `/?search=${encodeURIComponent(value)}`
+                            : '/';
+                        window.history.replaceState({}, '', newUrl);
+                    }}
+                    rightIcon={<Dices className="h-6 w-6" />}
+                    onRightIconClick={handleRandomBook}
+                    rightIconTitle="Livre aléatoire"
+                />
+            </div>
+            <AlphabeticalScroller
+                items={filteredBooks}
+                getKey={(book) => book.title}
+                onLetterClick={handleLetterScroll}
+                ariaLabel="Navigation alphabétique des livres"
             />
-            <AlphabeticalScroller onLetterClick={handleLetterScroll} />
 
             {/* Indicateur de chargement */}
             {loading ? (
@@ -362,13 +367,13 @@ const BooksPage = ({ initialSearchTerm }) => {
                     </button>
                 </div>
             ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="alphabet-content grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredBooks.length > 0 ? (
                         filteredBooks.map((book) => (
                             <div
                                 key={book.id}
                                 ref={(el) => (bookRefs.current[book.id] = el)}
-                                className="h-full"
+                                className="h-full min-w-0 max-w-full"
                             >
                                 <BookCard
                                     book={book}

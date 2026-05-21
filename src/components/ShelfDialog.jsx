@@ -197,7 +197,7 @@ const ShelfDialog = ({
                         </div>
                     )}
 
-                    <div className="flex justify-end space-x-2 pt-3">
+                    <div className="flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end sm:space-x-2 sm:gap-0">
                         <Button
                             type="button"
                             variant="outline"

@@ -160,11 +160,14 @@ const BarcodeScanner = ({ open, onOpenChange, onBarcodeDetected }) => {
                     </DialogDescription>
                 </DialogHeader>{' '}
                 <div className="space-y-4 pt-2">
-                    <div className="space-y-4">
-                        <div id="barcode-scanner" className="w-full"></div>
+                    <div className="max-h-[calc(100dvh-14rem)] overflow-y-auto overflow-x-hidden rounded-md">
+                        <div
+                            id="barcode-scanner"
+                            className="w-full min-w-0"
+                        ></div>
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-3">
+                    <div className="flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end sm:space-x-2 sm:gap-0">
                         <Button
                             type="button"
                             variant="outline"

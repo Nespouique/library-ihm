@@ -47,22 +47,22 @@ const FullscreenToggle = () => {
     };
 
     return (
-        <div className="fixed bottom-8 left-8 z-50">
-            {!isFullscreenMode && (
-                <motion.button
-                    onClick={handleFullscreenClick}
-                    className="floating-button fixed bottom-8 left-8 z-50"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                        delay: 0.2,
-                        type: 'spring',
-                    }}
-                >
-                    <Maximize2 className="h-7 w-7" />
-                </motion.button>
-            )}
-        </div>
+        !isFullscreenMode && (
+            <motion.button
+                type="button"
+                onClick={handleFullscreenClick}
+                aria-label="Activer le plein écran"
+                className="floating-button bottom-[calc(6rem+env(safe-area-inset-bottom))] left-4 md:bottom-8 md:left-8"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{
+                    delay: 0.2,
+                    type: 'spring',
+                }}
+            >
+                <Maximize2 className="h-7 w-7" />
+            </motion.button>
+        )
     );
 };
 

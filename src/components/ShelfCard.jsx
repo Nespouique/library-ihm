@@ -78,11 +78,11 @@ const ShelfCard = ({ shelf, onClick, onDelete, onEdit }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15 }}
-                className="shelf-card group"
+                className="shelf-card group max-w-full min-w-0 overflow-hidden"
             >
                 {/* Zone cliquable : contenu principal de l'étagère */}
                 <div
-                    className="flex items-center space-x-4 flex-grow cursor-pointer"
+                    className="flex min-w-0 max-w-full flex-grow cursor-pointer items-center gap-4 overflow-hidden"
                     onClick={onClick}
                 >
                     <div className="flex-shrink-0">
@@ -104,11 +104,11 @@ const ShelfCard = ({ shelf, onClick, onDelete, onEdit }) => {
                 </div>
 
                 {/* Boutons d'action */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                    <div></div> {/* Espace vide à gauche */}
-                    <div className="flex items-center gap-1">
+                <div className="flex min-w-0 items-center justify-between gap-2 mt-3 pt-3 border-t border-border">
+                    <div className="min-w-0"></div> {/* Espace vide à gauche */}
+                    <div className="flex shrink-0 items-center gap-1">
                         <button
-                            className={`p-1.5 rounded-md transition-colors group/edit ${
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors group/edit ${
                                 shelf.id === 'unclassified'
                                     ? 'text-muted-foreground/50 cursor-not-allowed'
                                     : 'hover:bg-primary/10 hover:text-primary'
@@ -128,7 +128,7 @@ const ShelfCard = ({ shelf, onClick, onDelete, onEdit }) => {
                             <Edit className="h-4 w-4" />
                         </button>
                         <button
-                            className={`p-1.5 rounded-md transition-colors group/delete ${
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors group/delete ${
                                 shelf.id === 'unclassified'
                                     ? 'text-muted-foreground/50 cursor-not-allowed'
                                     : 'hover:bg-destructive/10 hover:text-destructive'
