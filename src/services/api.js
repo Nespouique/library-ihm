@@ -2,6 +2,8 @@
 const API_BASE_URL = '/api';
 const GOOGLE_BOOKS_BASE_URL = 'https://www.googleapis.com/books/v1';
 const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org';
+const API_AUTH_CONFIGURATION_ERROR =
+    'API non autorisée ou configuration du compte applicatif invalide côté serveur.';
 
 // Classe utilitaire pour la validation des ISBN
 class ISBNValidator {
@@ -61,35 +63,45 @@ class ApiService {
     constructor(baseUrl = API_BASE_URL) {
         this.baseUrl = baseUrl;
     }
-    async fetchJson(endpoint, options = {}) {
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-            ...options,
-        });
 
+    async handleResponse(response, context) {
         let data = null;
         try {
             // On tente de lire le body, même en cas d'erreur
             data = await response.json();
         } catch (e) {
             // body vide ou non json
-            data = null;
             console.log(
-                `Erreur lors de la lecture du JSON pour ${endpoint}:`,
+                `Erreur lors de la lecture du JSON pour ${context}:`,
                 e
             );
         }
 
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new Error(API_AUTH_CONFIGURATION_ERROR);
+            }
+
             throw new Error(
                 `API Error: ${response.status} ${response.statusText} ${data?.message ? ' - ' + data.message : ''}`
             );
         }
 
         return data;
+    }
+
+    async fetchJson(endpoint, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
+        };
+
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            ...options,
+            headers,
+        });
+
+        return this.handleResponse(response, endpoint);
     }
 
     async postJson(endpoint, data) {
@@ -175,23 +187,7 @@ export class BooksService extends ApiService {
             body: formData,
         });
 
-        let data = null;
-        try {
-            data = await response.json();
-        } catch (e) {
-            console.log(
-                `Erreur lors de la lecture du JSON pour l'upload de jaquette:`,
-                e
-            );
-        }
-
-        if (!response.ok) {
-            throw new Error(
-                `API Error: ${response.status} ${response.statusText} ${data?.message ? ' - ' + data.message : ''}`
-            );
-        }
-
-        return data;
+        return this.handleResponse(response, "l'upload de jaquette");
     }
 
     /**
