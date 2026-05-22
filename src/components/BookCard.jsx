@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Book, User, Hash, Edit, Trash2 } from 'lucide-react';
+import { Book, User, CalendarDays, Edit, Trash2, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
     Dialog,
@@ -13,7 +13,7 @@ import { Button } from './ui/button';
 import { toast } from './ui/use-toast';
 import { booksService } from '../services/api';
 
-const BookCard = ({ book, onClick, onDelete, onEdit }) => {
+const BookCard = ({ book, onClick, onDelete, onEdit, onLend }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -64,6 +64,12 @@ const BookCard = ({ book, onClick, onDelete, onEdit }) => {
         }
     };
 
+    const handleLendClick = () => {
+        if (onLend) {
+            onLend(book);
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -99,29 +105,43 @@ const BookCard = ({ book, onClick, onDelete, onEdit }) => {
                             </span>
                         </div>
                         <div className="flex min-w-0 items-center text-sm text-muted-foreground">
-                            <Hash className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                            <span
-                                className="min-w-0 flex-1 truncate"
-                                title={book.isbn}
-                            >
-                                ISBN: {book.isbn}
+                            <CalendarDays className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                            <span className="min-w-0 flex-1 truncate">
+                                {book.publicationDate
+                                    ? new Date(
+                                          book.publicationDate
+                                      ).toLocaleDateString('fr-FR')
+                                    : '-'}
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="flex min-w-0 items-center justify-between gap-2 text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
-                {book.shelf ? (
+                <div className="flex min-w-0 items-center gap-1.5 flex-1 overflow-hidden">
+                    {book.lentTo && (
+                        <span
+                            className="block shrink min-w-0 max-w-[5rem] px-2 py-0.5 rounded-md text-xs font-medium bg-primary text-primary-foreground truncate"
+                            title="Prêté"
+                        >
+                            Prêté
+                        </span>
+                    )}
                     <span
-                        className="block min-w-0 max-w-full px-2 py-0.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground truncate-text"
+                        className="block shrink-0 px-2 py-0.5 rounded-md text-xs font-medium bg-secondary text-secondary-foreground truncate-text"
                         title={book.shelf}
                     >
                         {book.shelf}
                     </span>
-                ) : (
-                    <span className="min-w-0"></span>
-                )}
+                </div>
                 <div className="flex shrink-0 items-center gap-1">
+                    <button
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/lend"
+                        onClick={handleLendClick}
+                        title="Prêt du livre"
+                    >
+                        <LogOut className="h-4 w-4" />
+                    </button>
                     <button
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-primary/10 hover:text-primary transition-colors group/edit"
                         onClick={handleEditClick}

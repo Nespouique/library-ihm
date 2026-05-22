@@ -1,7 +1,18 @@
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+function getGitVersion() {
+    try {
+        return execSync('git describe --tags --always --dirty', {
+            encoding: 'utf-8',
+        }).trim();
+    } catch {
+        return process.env.npm_package_version || '0.0.0';
+    }
+}
 
 export default defineConfig({
     plugins: [
@@ -75,6 +86,9 @@ export default defineConfig({
     },
     // Configuration PWA pour le mode plein écran
     define: {
-        __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+        __APP_VERSION__: JSON.stringify(getGitVersion()),
+        __APP_REPO_URL__: JSON.stringify(
+            'https://github.com/Nespouique/library-ihm'
+        ),
     },
 });

@@ -8,6 +8,7 @@ import FloatingButton from '@/components/FloatingButton';
 import FullscreenToggle from '@/components/FullscreenToggle';
 import BookDialog from '@/components/BookDialog';
 import BookDetailDialog from '@/components/BookDetailDialog';
+import BookLendDialog from '@/components/BookLendDialog';
 import AlphabeticalScroller from '@/components/AlphabeticalScroller';
 import { toast } from '@/components/ui/use-toast';
 import { booksService, shelvesService, authorsService } from '@/services/api';
@@ -21,6 +22,8 @@ const BooksPage = ({ initialSearchTerm }) => {
     const [selectedBook, setSelectedBook] = useState(null);
     const [bookToEdit, setBookToEdit] = useState(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [bookToLend, setBookToLend] = useState(null);
+    const [isLendDialogOpen, setIsLendDialogOpen] = useState(false);
     const [authorsMap, setAuthorsMap] = useState({});
     const [shelvesMap, setShelvesMap] = useState({});
     const location = useLocation();
@@ -75,6 +78,8 @@ const BooksPage = ({ initialSearchTerm }) => {
                         : null, // Ajouter la location de l'étagère
                 publicationDate: book.date,
                 jacket: book.jacket, // Nom du fichier jacket de l'API
+                lentTo: book.lentTo || null,
+                lentAt: book.lentAt || null,
             }));
 
             setBooks(transformedBooks);
@@ -167,6 +172,52 @@ const BooksPage = ({ initialSearchTerm }) => {
     const handleEditBook = (book) => {
         setBookToEdit(book);
         setIsEditDialogOpen(true);
+    };
+
+    const handleOpenLendDialog = (book) => {
+        setBookToLend(book);
+        setIsLendDialogOpen(true);
+    };
+
+    const handleLendBook = async (bookId, { lentTo, lentAt }) => {
+        try {
+            const book = books.find((b) => b.id === bookId);
+            if (!book) return;
+
+            const bookDataForApi = {
+                title: book.title,
+                author: book.authorId,
+                isbn: book.isbn,
+                description: book.description,
+                date: book.publicationDate || null,
+                shelf: book.shelfId || null,
+                lentTo: lentTo,
+                lentAt: lentAt,
+            };
+
+            await booksService.updateBook(bookId, bookDataForApi);
+
+            const updatedBooks = books.map((b) =>
+                b.id === bookId ? { ...b, lentTo: lentTo, lentAt: lentAt } : b
+            );
+
+            setBooks(updatedBooks);
+
+            toast({
+                title: lentTo ? 'Prêt enregistré' : 'Livre retourné',
+                description: lentTo
+                    ? `"${book.title}" a été prêté à ${lentTo}.`
+                    : `"${book.title}" est de nouveau disponible.`,
+                variant: 'success',
+            });
+        } catch (error) {
+            console.error('Erreur lors du prêt du livre:', error);
+            toast({
+                title: 'Erreur - Impossible de gérer le prêt',
+                description: error.message,
+                variant: 'destructive',
+            });
+        }
     };
 
     const handleUpdateBook = async (updatedBookData) => {
@@ -367,7 +418,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                     </button>
                 </div>
             ) : (
-                <div className="alphabet-content grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="alphabet-content grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filteredBooks.length > 0 ? (
                         filteredBooks.map((book) => (
                             <div
@@ -380,6 +431,7 @@ const BooksPage = ({ initialSearchTerm }) => {
                                     onClick={() => setSelectedBook(book)}
                                     onDelete={handleBookDelete}
                                     onEdit={handleEditBook}
+                                    onLend={handleOpenLendDialog}
                                 />
                             </div>
                         ))
@@ -447,6 +499,16 @@ const BooksPage = ({ initialSearchTerm }) => {
                     onUpdateBook={handleUpdateBook}
                 />
             )}
+
+            <BookLendDialog
+                open={isLendDialogOpen}
+                onOpenChange={(open) => {
+                    setIsLendDialogOpen(open);
+                    if (!open) setBookToLend(null);
+                }}
+                book={bookToLend}
+                onLendBook={handleLendBook}
+            />
         </div>
     );
 };

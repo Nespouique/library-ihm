@@ -61,7 +61,7 @@ function parseDateFromString(value) {
 export function DatePicker({
     date,
     setDate,
-    placeholder = 'jj/mm/yyyy',
+    placeholder = 'jj/mm/aaaa',
     label = null,
     id = 'date',
     disabled = false,

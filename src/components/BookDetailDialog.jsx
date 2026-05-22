@@ -20,6 +20,7 @@ import {
     BookOpen,
     Camera,
     Loader2,
+    LogOut,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { areKubesAvailable } from '@/lib/kubeUtils';
@@ -544,6 +545,23 @@ const BookDetailDialog = ({ book, open, onOpenChange, onUpdateBook }) => {
                                         ) : (
                                             <span>{book.shelf}</span>
                                         )}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Prêt */}
+                            {book.lentTo && (
+                                <div className="flex items-start">
+                                    <LogOut className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                                    <p>
+                                        <span className="font-medium">
+                                            Prêté à :
+                                        </span>{' '}
+                                        <span className="text-muted-foreground">
+                                            {book.lentTo}
+                                            {book.lentAt &&
+                                                ` (depuis le ${new Date(book.lentAt).toLocaleDateString('fr-FR')})`}
+                                        </span>
                                     </p>
                                 </div>
                             )}

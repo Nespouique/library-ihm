@@ -657,7 +657,21 @@ const KubesPage = () => {
             )}
 
             {/* Bouton plein écran */}
-            <FullscreenToggle />
+            <div className="flex items-center justify-center pb-8">
+                <FullscreenToggle />
+            </div>
+
+            {/* Version footer */}
+            <div className="text-center pb-4">
+                <a
+                    href={`${__APP_REPO_URL__}/releases/tag/${__APP_VERSION__}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                >
+                    v{__APP_VERSION__}
+                </a>
+            </div>
 
             {/* Dialog de confirmation de suppression */}
             <Dialog
