@@ -384,6 +384,69 @@ export class GoogleBooksService {
     }
 }
 
+function parseOpenLibraryDate(dateString) {
+    if (!dateString || typeof dateString !== 'string') return '';
+
+    const trimmed = dateString.trim();
+    if (!trimmed) return '';
+
+    const FRENCH_MONTHS = {
+        janvier: 0,
+        'f\u00e9vrier': 1,
+        mars: 2,
+        avril: 3,
+        mai: 4,
+        juin: 5,
+        juillet: 6,
+        'ao\u00fbt': 7,
+        septembre: 8,
+        octobre: 9,
+        novembre: 10,
+        'd\u00e9cembre': 11,
+    };
+
+    const frenchMatch = trimmed.match(
+        /^(\d{1,2})\s+(janvier|f\u00e9vrier|mars|avril|mai|juin|juillet|ao\u00fbt|septembre|octobre|novembre|d\u00e9cembre)\s+(\d{4})$/i
+    );
+    if (frenchMatch) {
+        const day = parseInt(frenchMatch[1], 10);
+        const month = FRENCH_MONTHS[frenchMatch[2].toLowerCase()];
+        const year = parseInt(frenchMatch[3], 10);
+        const date = new Date(year, month, day);
+        if (!isNaN(date.getTime())) {
+            return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+    }
+
+    const englishMatch = trimmed.match(
+        /^(\d{1,2})?\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/i
+    );
+    if (englishMatch) {
+        const day = englishMatch[1] ? parseInt(englishMatch[1], 10) : 1;
+        const monthStr = englishMatch[2];
+        const year = parseInt(englishMatch[3], 10);
+        const date = new Date(`${monthStr} ${day}, ${year}`);
+        if (!isNaN(date.getTime())) {
+            return `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+    }
+
+    const yearOnlyMatch = trimmed.match(/^(\d{4})$/);
+    if (yearOnlyMatch) {
+        return `${yearOnlyMatch[1]}-01-01`;
+    }
+
+    const fallback = new Date(trimmed);
+    if (!isNaN(fallback.getTime())) {
+        const y = fallback.getFullYear();
+        const m = String(fallback.getMonth() + 1).padStart(2, '0');
+        const d = String(fallback.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    return '';
+}
+
 // Service pour Open Library
 export class OpenLibraryService {
     constructor() {
@@ -420,11 +483,7 @@ export class OpenLibraryService {
                 ? book.authors.map((author) => author.name)
                 : [];
 
-            // Formater la date de publication
-            let publishedDate = '';
-            if (book.publish_date) {
-                publishedDate = book.publish_date;
-            }
+            const publishedDate = parseOpenLibraryDate(book.publish_date);
 
             return {
                 title: book.title || '',

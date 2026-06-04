@@ -106,7 +106,10 @@ const BookDialog = ({
             // Pré-remplir avec les données du livre à modifier
             // Conversion simple de la date depuis le format API ("1994-12-14")
             const publicationDate = bookToEdit.publicationDate
-                ? new Date(bookToEdit.publicationDate)
+                ? (() => {
+                      const d = new Date(bookToEdit.publicationDate);
+                      return isNaN(d.getTime()) ? null : d;
+                  })()
                 : null;
 
             setFormData({
@@ -174,7 +177,12 @@ const BookDialog = ({
                     title: bookData.title || prevData.title,
                     description: bookData.description || prevData.description,
                     publicationDate: bookData.publishedDate
-                        ? new Date(bookData.publishedDate)
+                        ? (() => {
+                              const d = new Date(bookData.publishedDate);
+                              return isNaN(d.getTime())
+                                  ? prevData.publicationDate
+                                  : d;
+                          })()
                         : prevData.publicationDate,
                 }));
 
