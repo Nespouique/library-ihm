@@ -26,8 +26,9 @@ const AuthorDialog = ({
 
     const isEditMode = mode === 'edit' || authorToEdit !== null;
 
-    // Validation des champs obligatoires
-    const isFormValid = formData.firstName.trim() && formData.lastName.trim();
+    // Validation : au moins un des deux champs doit être renseigné
+    const isFormValid =
+        Boolean(formData.firstName.trim()) || Boolean(formData.lastName.trim());
 
     // Reset des champs quand la popup se ferme ou pré-remplir en mode édition
     useEffect(() => {
@@ -145,7 +146,7 @@ const AuthorDialog = ({
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="space-y-1">
-                            <Label htmlFor="firstName">Prénom *</Label>
+                            <Label htmlFor="firstName">Prénom</Label>
                             <Input
                                 id="firstName"
                                 value={formData.firstName}
@@ -156,11 +157,10 @@ const AuthorDialog = ({
                                     })
                                 }
                                 placeholder="Prénom"
-                                required
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label htmlFor="lastName">Nom *</Label>
+                            <Label htmlFor="lastName">Nom</Label>
                             <Input
                                 id="lastName"
                                 value={formData.lastName}
@@ -171,10 +171,12 @@ const AuthorDialog = ({
                                     })
                                 }
                                 placeholder="Nom"
-                                required
                             />
                         </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                        Renseignez au moins un des deux champs.
+                    </p>
 
                     <div className="flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end sm:space-x-2 sm:gap-0">
                         <Button
