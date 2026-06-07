@@ -238,11 +238,27 @@ For development or customization, install from sources:
 
 - **Node.js** (version 16 or higher)
 - **npm** or **yarn**
-- **Backend API** : [Library Web Service](https://github.com/Nespouique/library-ws) running
+- **MySQL 8.0** running locally (or accessible remotely)
+- **Backend API** : [Library Web Service](https://github.com/Nespouique/library-ws) repository
 
 #### Full Stack Setup
 
-##### 1. **Backend API Setup** (Required)
+##### 1. **Database Setup**
+
+```bash
+# Start MySQL (if not already running)
+sudo service mysql start
+
+# Create the database and user
+sudo mysql -e "
+CREATE DATABASE IF NOT EXISTS library_db;
+CREATE USER IF NOT EXISTS 'library_user'@'localhost' IDENTIFIED BY 'SecurePassword123';
+GRANT ALL PRIVILEGES ON library_db.* TO 'library_user'@'localhost';
+FLUSH PRIVILEGES;
+"
+```
+
+##### 2. **Backend API Setup** (Required)
 
 ```bash
 # Clone and setup the backend API first
@@ -252,21 +268,21 @@ npm install
 
 # Configure database (see backend README)
 cp .env.example .env
-# Edit .env with your MySQL settings
+# Edit .env with your MySQL settings (default .env points to a remote server)
 
-# Start the API server
-npm run dev
+# Start the API server (auto-creates tables and seeds example data)
+npm start
 # API will be available at http://localhost:3000
 ```
 
-##### 2. **Frontend Interface Setup**
+##### 3. **Frontend Interface Setup**
 
 ```bash
 # Clone the frontend interface
 git clone https://github.com/your-username/library-ihm.git
 cd library-ihm
 
-# Install dependencies
+# Install dependencies (use --legacy-peer-deps if you encounter peer dependency conflicts)
 npm install
 
 # Start development server
@@ -275,7 +291,7 @@ npm run dev
 # Access the application at http://localhost:5173
 ```
 
-##### 3. **API Integration**
+##### 4. **API Integration**
 
 The frontend is configured to communicate with the backend API:
 
